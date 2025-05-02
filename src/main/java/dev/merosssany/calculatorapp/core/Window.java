@@ -2,6 +2,8 @@ package dev.merosssany.calculatorapp.core;
 
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWVidMode;
+import org.lwjgl.opengl.GL;
+import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.system.MemoryUtil;
 
 public class Window {
@@ -14,10 +16,10 @@ public class Window {
         this.height = height;
         this.width = width;
         this.title = title;
-        init();
+        initGLFW();
     }
 
-    private void init() {
+    private void initGLFW() {
         long primaryMonitor = GLFW.glfwGetPrimaryMonitor();
         GLFWVidMode vidMode = GLFW.glfwGetVideoMode(primaryMonitor);
 
@@ -46,8 +48,11 @@ public class Window {
         GLFW.glfwShowWindow(window);
     }
 
+    public void initOpenGL() {
+        GLCapabilities capabilities = GL.createCapabilities();
+    }
 
-//    public void show() {
-//        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE,GLFW.GLFW_TRUE);
-//    }
+    public long getWindow() {
+        return window;
+    }
 }
