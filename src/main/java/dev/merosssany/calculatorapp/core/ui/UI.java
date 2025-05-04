@@ -1,6 +1,6 @@
 package dev.merosssany.calculatorapp.core.ui;
 
-import dev.merosssany.calculatorapp.core.RGB;
+import dev.merosssany.calculatorapp.core.RGBA;
 import dev.merosssany.calculatorapp.core.position.UIVector2Df;
 import dev.merosssany.calculatorapp.core.position.Vector2D;
 import dev.merosssany.calculatorapp.logging.Logger;
@@ -8,22 +8,26 @@ import dev.merosssany.calculatorapp.logging.Logger;
 import static org.lwjgl.opengl.GL11.*;
 
 public class UI {
-    private UIVector2Df position;
+    public UIVector2Df position;
     private final float width;
     private final float height;
-    private RGB background;
-    private Vector2D<Float> end;
+    private RGBA backgroundRGBA;
+    public Vector2D<Float> end;
     private final Logger logger = new Logger("UI Handler");
 
-    public void setBackgroundColor(RGB color) {
-        background = color;
+    public void setBackgroundColor(RGBA color) {
+        backgroundRGBA = color;
     }
 
-    public UI(UIVector2Df position,float width, float height, RGB background) {
+    public RGBA getBackgroundColor() {
+        return backgroundRGBA;
+    }
+
+    public UI(UIVector2Df position, float width, float height, RGBA background) {
         this.height = height;
         this.width = width;
         this.position = position;
-        this.background = background;
+        this.backgroundRGBA = background;
 
         float topLeftX = position.getX();
         float topLeftY = position.getY();
@@ -51,11 +55,27 @@ public class UI {
         return height;
     }
 
-    public void draw(int windowWidth, int windowHeight) {
-        if (background != null) {
-            glColor3f(background.getRed(), background.getGreen(), background.getBlue());
+    public Vector2D<Float> getEnd() {
+        return end;
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
+    // New method to change background color using individual components
+    public void changeBackgroundColor(float red, float green, float blue, float alpha) {
+        this.backgroundRGBA = new RGBA(red, green, blue, alpha);
+    }
+
+    public void draw() {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        if (backgroundRGBA != null) {
+            glColor4f(backgroundRGBA.getRed(), backgroundRGBA.getGreen(), backgroundRGBA.getBlue(), backgroundRGBA.getAlpha());
         } else {
-            glColor3f(1.0f, 1.0f, 1.0f);
+            glColor4f(1.0f, 1.0f, 1.0f, 1.0f); // Default to opaque white
         }
 
         float topLeftX = position.getX();
@@ -69,13 +89,7 @@ public class UI {
         glVertex2f(topLeftX + widthNDC, topLeftY - heightNDC); // Bottom-right (assuming +Y is up in NDC)
         glVertex2f(topLeftX, topLeftY - heightNDC);      // Bottom-left
         glEnd();
-    }
 
-    public Vector2D<Float> getEnd() {
-        return end;
-    }
-
-    public Logger getLogger() {
-        return logger;
+        glDisable(GL_BLEND); // Consider managing this outside the draw method for efficiency
     }
 }

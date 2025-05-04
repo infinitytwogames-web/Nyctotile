@@ -2,56 +2,41 @@ package dev.merosssany.calculatorapp.core;
 
 import dev.merosssany.calculatorapp.core.event.Event;
 import dev.merosssany.calculatorapp.core.event.SubscribeEvent;
-import dev.merosssany.calculatorapp.logging.Logger;
 
 import java.lang.reflect.Method;
 import java.util.*;
 
 public abstract class EventBus {
-    private static final Map<Class<?>, List<EventHandler>> handlers = new HashMap<>();
-    private static final Logger logger = new Logger("EventBus");
 
-    public static void register(Object listener) {
-        logger.log("Registering",logger.formatClassName(listener.getClass()));
-        Class<?> listenerClass = listener.getClass();
-        for (Method method : listenerClass.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(SubscribeEvent.class) &&
-                    method.getParameterCount() == 1) {
-                Class<?> eventType = method.getParameterTypes()[0];
-                method.setAccessible(true); // Allow calling private methods
+    private static final Map<Class<?>, List<ListenerMethod>> listeners = new HashMap<>();
 
-                EventHandler handler = new EventHandler(listener, method);
-                handlers.computeIfAbsent(eventType, k -> new ArrayList<>()).add(handler);
-            }
-        }
-    }
-
-    public static void post(Event event) {
-        List<EventHandler> eventHandlers = handlers.get(event.getClass());
-        if (eventHandlers != null) {
-            for (EventHandler handler : new ArrayList<>(eventHandlers)) { // Iterate over a copy
-                try {
-                    handler.invoke(event);
-                } catch (Exception e) {
-                    logger.error(e,"Failed to call event subscriber:",handler.getClass().getName());
+    public static void register(Object listenerInstance) {
+        for (Method method : listenerInstance.getClass().getDeclaredMethods()) {
+            if (method.isAnnotationPresent(SubscribeEvent.class)) {
+                Class<?>[] params = method.getParameterTypes();
+                if (params.length == 1 && Event.class.isAssignableFrom(params[0])) {
+                    Class<?> eventType = params[0];
+                    method.setAccessible(true);
+                    listeners
+                            .computeIfAbsent(eventType, k -> new ArrayList<>())
+                            .add(new ListenerMethod(listenerInstance, method));
                 }
             }
         }
     }
 
-    private record EventHandler(Object listener, Method method) {
-
-        public void invoke(Event event) throws Exception {
-                method.invoke(listener, event);
+    public static void post(Event event) {
+        List<ListenerMethod> methods = listeners.get(event.getClass());
+        if (methods != null) {
+            for (ListenerMethod lm : methods) {
+                try {
+                    lm.method.invoke(lm.instance, event);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj) return true;
-                if (obj == null || getClass() != obj.getClass()) return false;
-                EventHandler other = (EventHandler) obj;
-                return listener.equals(other.listener) && method.equals(other.method);
-            }
-
+        }
     }
+
+    private record ListenerMethod(Object instance, Method method) {}
 }

@@ -4,8 +4,8 @@ import java.util.Objects;
 import java.util.Vector;
 
 public class Vector2D<T extends Number & Comparable<T>> {
-    private T x;
-    private T y;
+    public T x;
+    public T y;
 
     public Vector2D(T x, T y) {
         this.x = x;
@@ -55,14 +55,17 @@ public class Vector2D<T extends Number & Comparable<T>> {
         return Objects.equals(this.x, other.x) && Objects.equals(this.y, other.y);
     }
 
-    public boolean isVectorPointIncludedIn(Vector2D<T> target, Vector2D<T> other) {
-        T minX = (target.getX().compareTo(other.getX()) <= 0) ? target.getX() : other.getX();
-        T maxX = (target.getX().compareTo(other.getX()) > 0) ? target.getX() : other.getX();
-        T minY = (target.getY().compareTo(other.getY()) <= 0) ? target.getY() : other.getY();
-        T maxY = (target.getY().compareTo(other.getY()) > 0) ? target.getY() : other.getY();
+    public boolean isVectorPointIncludedIn(Vector2D<? extends Number> target, Vector2D<? extends Number> other) {
+        float minX = this.getX().floatValue();
+        float maxX = other.getX().floatValue();
+        float minY = other.getY().floatValue(); // Bottom boundary (assuming UI y increases downwards or is already flipped)
+        float maxY = this.getY().floatValue(); // Top boundary (assuming UI y increases downwards or is already flipped)
 
-        return this.x.compareTo(minX) >= 0 && this.x.compareTo(maxX) <= 0 &&
-                this.y.compareTo(minY) >= 0 && this.y.compareTo(maxY) <= 0;
+        float targetX = target.getX().floatValue();
+        float targetY = target.getY().floatValue();
+
+        return targetX >= minX && targetX <= maxX &&
+                targetY <= maxY && targetY >= minY; // Adjusted Y comparisons
     }
 
     public boolean isVectorPointIncludedAround(Vector2D<T> target, Vector2D<T> other) {
