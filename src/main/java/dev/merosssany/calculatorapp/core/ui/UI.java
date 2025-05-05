@@ -11,7 +11,7 @@ public class UI {
     private UIVector2Df position;
     private final float width;
     private final float height;
-    private RGBA backgroundRGBA;
+    protected RGBA backgroundRGBA;
     private Vector2D<Float> end;
     private final Logger logger = new Logger("UI Handler");
     private final String name;

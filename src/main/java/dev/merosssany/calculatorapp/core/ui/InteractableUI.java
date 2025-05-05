@@ -4,6 +4,7 @@ import dev.merosssany.calculatorapp.core.EventBus;
 import dev.merosssany.calculatorapp.core.RGBA;
 import dev.merosssany.calculatorapp.core.Window;
 import dev.merosssany.calculatorapp.core.event.*;
+import dev.merosssany.calculatorapp.core.io.HoverEventRegister;
 import dev.merosssany.calculatorapp.core.position.UIVector2Df;
 import dev.merosssany.calculatorapp.core.position.Vector2D;
 import dev.merosssany.calculatorapp.logging.Logger;
@@ -12,13 +13,14 @@ import org.lwjgl.glfw.GLFW;
 public class InteractableUI extends UI{
     private final Window window;
     private final Logger logger = new Logger("Interactable UI");
-    private RGBA original = this.getBackgroundColor();
+    private RGBA original;
 
     public InteractableUI(UIVector2Df position, float width, float height, RGBA background, Window window) {
         super("Interactable UI", position, width, height, background);
         this.window = window;
-
+        HoverEventRegister.registerUI(this);
         EventBus.register(this);
+        this.original = super.getBackgroundColor();
     }
 
     @SubscribeEvent
@@ -88,7 +90,12 @@ public class InteractableUI extends UI{
         getLogger().log("Button Pressed");
     }
 
-    public RGBA getOriginal() {
+    @Override
+    public RGBA getBackgroundColor() {
         return original;
+    }
+
+    public RGBA getCurrentColor() {
+        return backgroundRGBA;
     }
 }

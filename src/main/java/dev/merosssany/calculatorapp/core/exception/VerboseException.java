@@ -1,6 +1,10 @@
 package dev.merosssany.calculatorapp.core.exception;
 
 public class VerboseException extends Throwable {
+    public VerboseException(String message) {
+        super(message);
+    }
+
     @Override
     public void printStackTrace() {
         StringBuilder builder = new StringBuilder();
