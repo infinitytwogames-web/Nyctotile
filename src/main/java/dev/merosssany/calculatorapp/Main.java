@@ -26,7 +26,7 @@ public class Main {
         Window window = new Window(700,450,"Hello");
         window.initOpenGL();
 
-        UI topLeftHalfElement = new UI(new UIVector2Df(-1f,1f),2f,0.5f ,new RGBA(1.0f, 0.0f, 0.0f,0.9f));
+        UI topLeftHalfElement = new UI("Test", new UIVector2Df(-1f,1f),2f,0.5f ,new RGBA(1.0f, 0.0f, 0.0f,0.9f));
         InteractableUI t = new InteractableUI(new UIVector2Df(-1f,0f),2f,0.5f ,new RGBA(0.0f, 1.0f, 0.0f,1f),window);
         InputHandler handler = new InputHandler(window);
         handler.init();

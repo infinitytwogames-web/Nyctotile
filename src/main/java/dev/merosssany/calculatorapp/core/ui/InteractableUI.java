@@ -15,7 +15,7 @@ public class InteractableUI extends UI{
     private RGBA original = this.getBackgroundColor();
 
     public InteractableUI(UIVector2Df position, float width, float height, RGBA background, Window window) {
-        super(position, width, height, background);
+        super("Interactable UI", position, width, height, background);
         this.window = window;
 
         EventBus.register(this);

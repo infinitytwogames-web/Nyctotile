@@ -8,12 +8,13 @@ import dev.merosssany.calculatorapp.logging.Logger;
 import static org.lwjgl.opengl.GL11.*;
 
 public class UI {
-    public UIVector2Df position;
+    private UIVector2Df position;
     private final float width;
     private final float height;
     private RGBA backgroundRGBA;
-    public Vector2D<Float> end;
+    private Vector2D<Float> end;
     private final Logger logger = new Logger("UI Handler");
+    private final String name;
 
     public void setBackgroundColor(RGBA color) {
         backgroundRGBA = color;
@@ -23,11 +24,12 @@ public class UI {
         return backgroundRGBA;
     }
 
-    public UI(UIVector2Df position, float width, float height, RGBA background) {
+    public UI(String name,UIVector2Df position, float width, float height, RGBA background) {
         this.height = height;
         this.width = width;
         this.position = position;
         this.backgroundRGBA = background;
+        this.name = name;
 
         float topLeftX = position.getX();
         float topLeftY = position.getY();
@@ -91,5 +93,9 @@ public class UI {
         glEnd();
 
         glDisable(GL_BLEND); // Consider managing this outside the draw method for efficiency
+    }
+
+    public String getName() {
+        return name;
     }
 }

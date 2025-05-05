@@ -13,6 +13,6 @@ public class RGBA extends RGB{
     }
 
     public void setAlpha(float alpha) {
-
+        this.alpha = alpha;
     }
 }
