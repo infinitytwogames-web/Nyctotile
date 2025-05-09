@@ -1,6 +1,7 @@
 package dev.merosssany.calculatorapp.core;
 
 import dev.merosssany.calculatorapp.core.position.Vector2D;
+import org.joml.Matrix4f;
 
 public abstract class AdvancedMath {
 
@@ -112,4 +113,103 @@ public abstract class AdvancedMath {
         return topRight.getX().compareTo(minX) > 0 && topRight.getX().compareTo(maxX) < 0 &&
                 topRight.getY().compareTo(minY) > 0 && topRight.getY().compareTo(maxY) < 0;
     }
+
+    /**
+     * Creates a 2D translation matrix.
+     *
+     * @param tx The translation distance along the x-axis.
+     * @param ty The translation distance along the y-axis.
+     * @return A 4x4 translation matrix.
+     */
+    public static Matrix4f translate2D(float tx, float ty) {
+        Matrix4f matrix = new Matrix4f();
+        matrix.identity();
+        matrix.translate(tx, ty, 0);
+        return matrix;
+    }
+
+    /**
+     * Creates a 2D scaling matrix.
+     *
+     * @param sx The scaling factor along the x-axis.
+     * @param sy The scaling factor along the y-axis.
+     * @return A 4x4 scaling matrix.
+     */
+    public static Matrix4f scale2D(float sx, float sy) {
+        Matrix4f matrix = new Matrix4f();
+        matrix.identity();
+        matrix.scale(sx, sy, 1);
+        return matrix;
+    }
+
+    /**
+     * Creates a 2D rotation matrix (around the Z-axis).
+     *
+     * @param angle The rotation angle in radians.
+     * @return A 4x4 rotation matrix.
+     */
+    public static Matrix4f rotate2D(float angle) {
+        Matrix4f matrix = new Matrix4f();
+        matrix.identity();
+        matrix.rotate(angle, 0, 0, 1);
+        return matrix;
+    }
+
+    /**
+     * Creates a 2D orthographic projection matrix.
+     *
+     * @param left The left edge of the projection.
+     * @param right The right edge of the projection.
+     * @param bottom The bottom edge of the projection.
+     * @param top The top edge of the projection.
+     * @return A 4x4 orthographic projection matrix.
+     */
+    public static Matrix4f orthographicProjection2D(float left, float right, float bottom, float top) {
+        Matrix4f matrix = new Matrix4f();
+        matrix.identity();
+        matrix.setOrtho(left, right, bottom, top, -1, 1); // zNear = -1, zFar = 1
+        return matrix;
+    }
+
+    /**
+     * Calculates the combined model matrix from translation, scaling, and rotation.
+     *
+     * @param translationMatrix The translation matrix.
+     * @param scalingMatrix     The scaling matrix.
+     * @param rotationMatrix      The rotation matrix.
+     * @return A 4x4 model matrix representing the combined transformation (Scale -> Rotate -> Translate).
+     */
+    public static Matrix4f calculateModelMatrix(Matrix4f translationMatrix, Matrix4f scalingMatrix, Matrix4f rotationMatrix) {
+        Matrix4f modelMatrix = new Matrix4f();
+        modelMatrix.identity();
+        modelMatrix.mul(scalingMatrix);
+        modelMatrix.mul(rotationMatrix);
+        modelMatrix.mul(translationMatrix);
+        return modelMatrix;
+    }
+
+//    public static void main(String[] args) {
+//        // Example usage:
+//        float positionX = 100f;
+//        float positionY = 200f;
+//        float scaleX    = 2f;
+//        float scaleY    = 1.5f;
+//        float rotation  = 0.5f; // radians
+//
+//        Matrix4f translationMatrix = MatrixCalculator2D.translate2D(positionX, positionY);
+//        Matrix4f scalingMatrix     = MatrixCalculator2D.scale2D(scaleX, scaleY);
+//        Matrix4f rotationMatrix      = MatrixCalculator2D.rotate2D(rotation);
+//
+//        // Calculate the model matrix: Scale -> Rotate -> Translate
+//        Matrix4f modelMatrix = MatrixCalculator2D.calculateModelMatrix(translationMatrix, scalingMatrix, rotationMatrix);
+//
+//        System.out.println("Model Matrix:\n" + modelMatrix);
+//
+//        float left = 0f;
+//        float right = 800f;
+//        float bottom = 0f;
+//        float top = 600f;
+//        Matrix4f projectionMatrix = MatrixCalculator2D.orthographicProjection2D(left, right, bottom, top);
+//        System.out.println("Projection Matrix: \n" + projectionMatrix);
+//    }
 }

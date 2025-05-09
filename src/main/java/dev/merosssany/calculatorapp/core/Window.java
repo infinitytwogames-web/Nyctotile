@@ -5,7 +5,7 @@ import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.glfw.GLFWVidMode;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GLCapabilities;
-import org.lwjgl.opengl.GL11; // Import GL11
+import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
 
 public class Window {
@@ -44,20 +44,19 @@ public class Window {
         GLFWVidMode vidMode = GLFW.glfwGetVideoMode(primaryMonitor);
 
         GLFW.glfwDefaultWindowHints();
-        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE); // Initially hidden
+        GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
 
         this.window = GLFW.glfwCreateWindow(width, height, title, MemoryUtil.NULL, MemoryUtil.NULL);
         if (window == MemoryUtil.NULL) {
             throw new RuntimeException("Failed to create the GLFW window");
         }
 
-        // Set the framebuffer size callback
         GLFW.glfwSetFramebufferSizeCallback(window, framebufferSizeCallback = new GLFWFramebufferSizeCallback() {
             @Override
             public void invoke(long window, int newWidth, int newHeight) {
                 width = newWidth;
                 height = newHeight;
-                GL11.glViewport(0, 0, width, height); // Use GL11.glViewport
+                GL11.glViewport(0, 0, width, height);
             }
         });
 
@@ -73,15 +72,13 @@ public class Window {
 
         // Enable v-sync
         GLFW.glfwSwapInterval(1);
-
-        // Show the window
         GLFW.glfwShowWindow(window);
     }
 
     public void initOpenGL() {
         GLCapabilities capabilities = GL.createCapabilities();
-        GL11.glEnable(GL11.GL_DEPTH_TEST); // Use GL11 for OpenGL constants
-        GL11.glViewport(0, 0, width, height); // Use GL11.glViewport
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glViewport(0, 0, width, height);
     }
 
     public long getWindow() {

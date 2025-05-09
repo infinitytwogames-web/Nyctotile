@@ -21,12 +21,12 @@ public class InputHandler {
 
     public void init() {
         glfwKeyCallback = GLFW.glfwSetKeyCallback(window.getWindow(), (windowHandle, key, scancode, action, mods) -> {
-            logger.log("Posting KeyPressEvent");
+            logger.info("Posting KeyPressEvent");
             EventBus.post(new KeyPressEvent(key, action));
         });
 
         glfwMouseButtonCallback = GLFW.glfwSetMouseButtonCallback(window.getWindow(), (windowHandle, button, action, mods) -> {
-            logger.log("Posting MouseButtonEvent");
+            logger.info("Posting MouseButtonEvent");
             EventBus.post(new MouseButtonEvent(button, action));
         });
     }

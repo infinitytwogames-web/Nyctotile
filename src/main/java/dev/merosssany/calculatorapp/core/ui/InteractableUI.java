@@ -25,7 +25,7 @@ public class InteractableUI extends UI{
 
     @SubscribeEvent
     private void onEventFired(MouseButtonEvent e) {
-        logger.log("Got event");
+        logger.info("Got event");
         if (e != null) {
             int key = e.getButton();
             int action = e.getAction();
@@ -87,7 +87,7 @@ public class InteractableUI extends UI{
     }
 
     public void onMouseRightClick() {
-        getLogger().log("Button Pressed");
+        getLogger().info("Button Pressed");
     }
 
     @Override

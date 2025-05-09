@@ -1,5 +1,7 @@
 package dev.merosssany.calculatorapp.core;
 
+import javax.swing.*;
+
 import static org.lwjgl.glfw.GLFW.*;
 
 public class CleanupManager {
@@ -17,7 +19,7 @@ public class CleanupManager {
 
     public static void exit(int code) {
         if (code != 0) {
-            // TODO: SHOW POP UP
+            createPopup("Application exit with code: "+code);
         } else {
             cleanup();
         }
@@ -26,7 +28,7 @@ public class CleanupManager {
     }
 
     private static void cleanup() {
-        // TODO: CODE CLEANUP METHOD (release other resources)
+        terminateGLFW();
     }
 
     public static void terminateGLFW() {
@@ -35,5 +37,13 @@ public class CleanupManager {
             glfwSetErrorCallback(null).free(); // Also free the error callback
             glfwInitialized = false;
         }
+    }
+
+    public static void createPopup(String errorMessage) {
+        JOptionPane.showMessageDialog(
+                null, // Parent component (can be null for a default window)
+                errorMessage,
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 }

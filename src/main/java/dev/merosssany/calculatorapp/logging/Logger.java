@@ -2,6 +2,7 @@ package dev.merosssany.calculatorapp.logging;
 
 import dev.merosssany.calculatorapp.core.CleanupManager;
 import dev.merosssany.calculatorapp.core.exception.VerboseException;
+import dev.merosssany.calculatorapp.core.position.UIVector2Df;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -16,11 +17,11 @@ public class Logger {
         this.name = processName;
     }
 
-    public void log(String ...messages) {
+    public void info(String ...messages) {
         System.out.println(format(LoggingLevel.INFO,messages));
     }
     @SafeVarargs
-    public final <T> void log(T... objects) {
+    public final <T> void info(T... objects) {
         System.out.println(formatObj(LoggingLevel.INFO,objects));
     }
 
@@ -61,7 +62,7 @@ public class Logger {
         } else {
             printStacktrace(e, LoggingLevel.FATAL); // Use Logger's formatting
         }
-        CleanupManager.exit(1);
+        CleanupManager.createPopup("A Fatal error has been thrown: "+e.getMessage()+"\n"+formatStacktrace(e, LoggingLevel.FATAL));
     }
     public void fatal(Throwable e,Object ...objects) {
         System.err.println("\033[31m"+formatObj(LoggingLevel.FATAL,objects)+"\033[0m");
@@ -70,7 +71,7 @@ public class Logger {
         } else {
             printStacktrace(e, LoggingLevel.FATAL); // Use Logger's formatting
         }
-        CleanupManager.exit(1);
+        CleanupManager.createPopup("A Fatal error has been thrown: "+e.getMessage()+"\n"+formatStacktrace(e, LoggingLevel.FATAL));
     }
 
     public void debug(Object ...objects) {
@@ -202,6 +203,10 @@ public class Logger {
     }
 
     private void printStacktrace(Throwable e,LoggingLevel level) {
+        System.out.println(formatStacktrace(e,level));
+    }
+
+    private String formatStacktrace(Throwable e,LoggingLevel level) {
         StringBuilder builder = new StringBuilder();
         builder.append(formatTime(level))
                 .append("An exception has been occurred!")
@@ -231,7 +236,7 @@ public class Logger {
                         .append("\n");
             }
         }
-        System.out.println("\033[31m"+builder.toString()+"\033[0m");
+        return "\033[31m"+ builder +"\033[0m";
     }
 
     public String formatClassName(Class<?> classProvided) {
@@ -244,6 +249,7 @@ public class Logger {
         return classProvided.isPrimitive() || Number.class.isAssignableFrom(classProvided) || String.class.isAssignableFrom(classProvided) || Boolean.class.isAssignableFrom(classProvided);
     }
 
+    @SafeVarargs
     @SuppressWarnings("varargs")
     public final <T extends Number> void info(T... numbers) {System.out.println(formatObj(LoggingLevel.INFO,numbers));}
 }

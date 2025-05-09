@@ -16,7 +16,7 @@ public class LocalEventBus {
 
     public LocalEventBus(String name) {
         this.logger = new Logger("EventBus "+name);
-        logger.log("Created new EventBus");
+        logger.info("Created new EventBus");
     }
 
     public void register(Object listenerInstance) {

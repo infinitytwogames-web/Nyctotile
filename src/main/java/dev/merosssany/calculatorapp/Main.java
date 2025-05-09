@@ -7,54 +7,67 @@ import dev.merosssany.calculatorapp.core.position.UIVector2Df;
 import dev.merosssany.calculatorapp.core.ui.Button;
 import dev.merosssany.calculatorapp.core.ui.InteractableUI;
 import dev.merosssany.calculatorapp.core.ui.UI;
+import dev.merosssany.calculatorapp.core.ui.font.CharacterInfo;
+import dev.merosssany.calculatorapp.core.ui.font.FontMatrices;
+import dev.merosssany.calculatorapp.core.ui.font.TextRenderer;
 import dev.merosssany.calculatorapp.logging.Logger;
+import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.nanovg.NVGColor;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.nanovg.NanoVG.*;
-import static org.lwjgl.nanovg.NanoVGGL3.*;
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL15.glBindBuffer;
+import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
+import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
 public class Main {
     private static final Logger logger = new Logger("Main");
+    private static Window window;
 
     public static void main(String[] args) {
-         GLFWErrorCallback.createPrint(System.err).set();
+        GLFWErrorCallback.createPrint(System.err).set();
         if (!glfwInit()) {
             throw new IllegalStateException("Unable to initialize GLFW");
         }
 
-        logger.log("Launching game...");
+        logger.info("Launching game...");
 
-        Window window = new Window(700,450,"Hello");
+        window = new Window(1024,512,"Hello");
         window.initOpenGL();
 
-        UI topLeftHalfElement = new UI("Test", new UIVector2Df(-1f,1f),2f,0.5f ,new RGBA(1.0f, 0.0f, 0.0f,0.9f));
-        InteractableUI t = new InteractableUI(new UIVector2Df(-1f,0f),2f,0.5f ,new RGBA(0.0f, 1.0f, 0.0f,1f),window);
+        InteractableUI t = new InteractableUI(new UIVector2Df(-1f,0f),2f,0.5f ,new RGBA(0, 255, 0,1f),window);
+        UI topLeftHalfElement = new UI("Test", new UIVector2Df(-1f,1f),2f,0.5f ,new RGBA(255, 0, 0,0.9f));
         InputHandler handler = new InputHandler(window);
+
+        topLeftHalfElement.init();
+        t.init();
         handler.init();
-        Button button = new Button(new UIVector2Df(-1f,1f),2f,0.5f,new RGBA(0,0,0,1),window);
+
+        Shader shader = new Shader("assets/font/vertexShader.glsl", "assets/font/fragmentShader.glsl");
+
+        int projectionUniform = shader.getUniformLocation("uProjection");
+        int modelUniform = shader.getUniformLocation("uModel");
+        int viewUniform = shader.getUniformLocation("uView");
+        int textColorUniform = shader.getUniformLocation("uTextColor");
+        int textureUniform = shader.getUniformLocation("uFontTexture");
+
+        FontMatrices fontMatrices = new FontMatrices(window.getWidth(), window.getHeight(), true);
+        Matrix4f projectionMatrix = fontMatrices.getProjectionMatrix();
 
         while (!glfwWindowShouldClose(window.getWindow())) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear the framebuffer
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            t.draw();
+            topLeftHalfElement.draw();
 
             EventBus.post(new MouseHoverEvent());
-
-//            topLeftHalfElement.draw();
-//            t.draw();
-            button.draw();
-
-
-            long vg = nvgCreate(NVG_ANTIALIAS | NVG_STENCIL_STROKES);
-//            int font = FontLoader.loadFont(vg, "oswald", "/fonts/Main.ttf");
-
-            nvgBeginFrame(vg, window.getWidth(), window.getHeight(), 1);
-            nvgFontFace(vg, "oswald");
-            nvgFontSize(vg, 32f);
-            nvgFillColor(vg, nvgRGBA((byte) 255, (byte) 255, (byte) 255, (byte) 255, NVGColor.create()));
-            nvgText(vg, 100, 100, "Hello from NanoVG!");
-            nvgEndFrame(vg);
 
             glfwSwapBuffers(window.getWindow()); // Swap the color buffers
             glfwPollEvents();       // Poll for window events
@@ -64,7 +77,11 @@ public class Main {
         CleanupManager.exit(0);
     }
 
+    public static void cleanup() {
+        window.cleanup();
+    }
+
     private static void tesst() {
-        logger.log("Button Pressed");
+        logger.info("Button Pressed");
     }
 }

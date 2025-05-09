@@ -25,7 +25,7 @@ public class HoverEventRegister {
     private volatile boolean running = true; // For graceful shutdown
 
     public static void registerUI(UI ui) {
-        logger.log("Registering UI Element:", ui.getName());
+        logger.info("Registering UI Element:", ui.getName());
         if (!listeners.contains(ui)) {
             listeners.add(ui);
         }
@@ -88,6 +88,6 @@ public class HoverEventRegister {
                 running = false; // Exit the loop on interruption
             }
         }
-        logger.log("HoverEventRegister thread stopped.");
+        logger.info("HoverEventRegister thread stopped.");
     }
 }
