@@ -1,6 +1,6 @@
 package dev.merosssany.calculatorapp.core.ui;
 
-import dev.merosssany.calculatorapp.core.ShaderProgram;
+import dev.merosssany.calculatorapp.core.render.ShaderProgram;
 
 import java.io.IOException;
 

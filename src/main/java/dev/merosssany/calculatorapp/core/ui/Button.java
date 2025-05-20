@@ -4,11 +4,15 @@ import dev.merosssany.calculatorapp.core.*;
 import dev.merosssany.calculatorapp.core.position.UIVector2Df;
 import dev.merosssany.calculatorapp.core.position.Vector2D;
 import dev.merosssany.calculatorapp.core.position.Vector2Dx2;
+import dev.merosssany.calculatorapp.core.render.ShaderProgram;
+import dev.merosssany.calculatorapp.core.render.Window;
+import dev.merosssany.calculatorapp.core.ui.font.FontRenderer;
 import dev.merosssany.calculatorapp.core.ui.font.FontRendererGL;
+import org.joml.Matrix4f;
 
 import java.io.IOException;
 
-import static dev.merosssany.calculatorapp.core.ShaderProgram.load;
+import static dev.merosssany.calculatorapp.core.render.ShaderProgram.load;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Button extends InteractableUI {
@@ -20,6 +24,7 @@ public class Button extends InteractableUI {
     private final float padding;
     private FontRendererGL fontRenderer;
     private float scaleDownFactor = 0.5f;
+    private FontRenderer s;
 
     public Button(String text, float scale, RGBA color, UIVector2Df position, float width, float height, float padding, RGBA background, Window window) throws IOException {
         super(position, width, height, background, window);
@@ -59,9 +64,7 @@ public class Button extends InteractableUI {
     }
 
     private void initBtn() throws IOException {
-        if (shader == null)
-            shader = new ShaderProgram(load("assets/font/vertexShader.glsl"), load("assets/font/fragmentShader.glsl"));
-        fontRenderer = new FontRendererGL("src/main/resources/fonts/Main.ttf", 48.0f, shader);
+        s = new FontRenderer("src/main/resources/fonts/Main.ttf",32);
     }
 
     public boolean isPressed() {
@@ -75,39 +78,9 @@ public class Button extends InteractableUI {
     }
 
     @Override
-    public void draw() {
-        // 2. Enable blending for the text
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        // 3. Set the text color
-        fontRenderer.setColor(textColor.getRed(), textColor.getGreen(), textColor.getBlue(), textColor.getAlpha());
-
-        // Get the text position.
-        Vector2Dx2<Float> textScalePosition = calculatePadding();
-        float textOpenGLX = textScalePosition.getPoint1().getX();
-        float textOpenGLY = textScalePosition.getPoint1().getY();
-
-        float baseScaleY = (1.0f / getWindow().getHeight() * getHeight()) * -5;
-        float baseScaleX = -baseScaleY;
-
-        // 4.  Calculate the text's pixel position, relative to the button's position.
-        Vector2D<Integer> buttonPixelPosition = AdvancedMath.ndcToPixel(getPosition().getX() -0.40f, getPosition().getY() + 0.35f, getWindow());
-        int textX = buttonPixelPosition.getX() + (int) (padding * getWindow().getWidth());
-        int textY = buttonPixelPosition.getY() + (int) (padding * getWindow().getHeight());
-
-        // 5. Render the text
-//        fontRenderer.renderText(
-//                text,
-//                textX,
-//                textY,
-//                baseScaleX * scaleDownFactor,
-//                baseScaleY * scaleDownFactor,
-//                getWindow()
-//        );
-
-        glDisable(GL_BLEND);
-        super.draw();
+    public void draw(Matrix4f projMatrix) {
+        super.draw(projMatrix);
+        s.renderText(projMatrix,text,getPosition().getX(),getPosition().getY(),textColor.getRed(),textColor.getGreen(),textColor.getBlue());
     }
 
 
@@ -139,5 +112,6 @@ public class Button extends InteractableUI {
     public void cleanup() {
         super.cleanup();
         fontRenderer.cleanup();
+        s.cleanup();
     }
 }

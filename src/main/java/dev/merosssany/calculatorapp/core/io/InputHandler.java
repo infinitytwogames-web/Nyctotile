@@ -1,10 +1,10 @@
 package dev.merosssany.calculatorapp.core.io;
 
-import dev.merosssany.calculatorapp.core.EventBus;
-import dev.merosssany.calculatorapp.core.Window;
+import dev.merosssany.calculatorapp.core.event.EventBus;
+import dev.merosssany.calculatorapp.core.render.Window;
 import dev.merosssany.calculatorapp.core.event.KeyPressEvent;
 import dev.merosssany.calculatorapp.core.event.MouseButtonEvent;
-import dev.merosssany.calculatorapp.logging.Logger;
+import dev.merosssany.calculatorapp.core.logging.Logger;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;

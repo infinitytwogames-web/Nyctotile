@@ -1,4 +1,4 @@
-package dev.merosssany.calculatorapp.logging;
+package dev.merosssany.calculatorapp.core.logging;
 
 public enum LoggingLevel {
     INFO("INFO"),

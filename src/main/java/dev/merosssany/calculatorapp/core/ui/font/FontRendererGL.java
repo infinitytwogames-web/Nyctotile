@@ -1,7 +1,7 @@
 package dev.merosssany.calculatorapp.core.ui.font;
 
-import dev.merosssany.calculatorapp.core.ShaderProgram;
-import dev.merosssany.calculatorapp.core.Window;
+import dev.merosssany.calculatorapp.core.render.ShaderProgram;
+import dev.merosssany.calculatorapp.core.render.Window;
 import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBTTBakedChar;
@@ -14,8 +14,6 @@ import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +21,6 @@ import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
-import static org.lwjgl.stb.STBTruetype.stbtt_BakeFontBitmap;
 import static org.lwjgl.stb.STBTruetype.*;
 
 public class FontRendererGL {

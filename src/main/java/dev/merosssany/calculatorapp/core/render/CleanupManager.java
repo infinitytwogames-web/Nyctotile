@@ -1,4 +1,4 @@
-package dev.merosssany.calculatorapp.core;
+package dev.merosssany.calculatorapp.core.render;
 
 import javax.swing.*;
 

@@ -1,8 +1,7 @@
-package dev.merosssany.calculatorapp.logging;
+package dev.merosssany.calculatorapp.core.logging;
 
-import dev.merosssany.calculatorapp.core.CleanupManager;
+import dev.merosssany.calculatorapp.core.render.CleanupManager;
 import dev.merosssany.calculatorapp.core.exception.VerboseException;
-import dev.merosssany.calculatorapp.core.position.UIVector2Df;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

@@ -1,6 +1,7 @@
 package dev.merosssany.calculatorapp.core;
 
 import dev.merosssany.calculatorapp.core.position.Vector2D;
+import dev.merosssany.calculatorapp.core.render.Window;
 import org.joml.Matrix4f;
 
 public abstract class AdvancedMath {

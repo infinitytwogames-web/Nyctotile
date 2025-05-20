@@ -1,6 +1,6 @@
 package dev.merosssany.calculatorapp.core.ui.font;
 
-import dev.merosssany.calculatorapp.core.ShaderProgram;
+import dev.merosssany.calculatorapp.core.render.ShaderProgram;
 
 public class FontOptions {
     public float display;

@@ -1,13 +1,13 @@
 package dev.merosssany.calculatorapp.core.ui;
 
-import dev.merosssany.calculatorapp.core.EventBus;
+import dev.merosssany.calculatorapp.core.event.EventBus;
 import dev.merosssany.calculatorapp.core.RGBA;
-import dev.merosssany.calculatorapp.core.Window;
+import dev.merosssany.calculatorapp.core.render.Window;
 import dev.merosssany.calculatorapp.core.event.*;
 import dev.merosssany.calculatorapp.core.io.HoverEventRegister;
 import dev.merosssany.calculatorapp.core.position.UIVector2Df;
 import dev.merosssany.calculatorapp.core.position.Vector2D;
-import dev.merosssany.calculatorapp.logging.Logger;
+import dev.merosssany.calculatorapp.core.logging.Logger;
 import org.lwjgl.glfw.GLFW;
 
 public class InteractableUI extends UI{
@@ -41,7 +41,7 @@ public class InteractableUI extends UI{
 
     public void changeInteractableBackgroundColor(float r, float g, float b, float a) {
         this.original = new RGBA(r,g,b,a);
-        changeBackgroundColor(r,g,b,a);
+        setBackgroundColor(r,g,b,a);
     }
 
     private boolean isInRange() {
@@ -72,17 +72,17 @@ public class InteractableUI extends UI{
     }
 
     public void onMouseHover() {
-        getLogger().info("Mouse Hover");
-        changeBackgroundColor(original.getRed(),original.getGreen(),original.getBlue(),original.getAlpha() - 0.3f);
+//        getLogger().info("Mouse Hover");
+        setBackgroundColor(original.getRed(),original.getGreen(),original.getBlue(),original.getAlpha() - 0.3f);
     }
 
     public void mouseNotHovering() {
 //        getLogger().log("Mouse Not Hovering");
-        changeBackgroundColor(original.getRed(),original.getGreen(),original.getBlue(),original.getAlpha());
+        setBackgroundColor(original.getRed(),original.getGreen(),original.getBlue(),original.getAlpha());
     }
 
     public void onMouseRightClick() {
-        getLogger().info("Button Pressed");
+
     }
 
     @Override
@@ -91,7 +91,8 @@ public class InteractableUI extends UI{
     }
 
     public RGBA getCurrentColor() {
-        return backgroundRGBA;
+//        return getBackground();
+        return new RGBA();
     }
 
     @Override
