@@ -41,7 +41,7 @@ public class InteractableUI extends UI{
 
     public void changeInteractableBackgroundColor(float r, float g, float b, float a) {
         this.original = new RGBA(r,g,b,a);
-        setBackgroundColor(r,g,b,a);
+        setBackgroundColor(this.original);
     }
 
     private boolean isInRange() {
@@ -72,17 +72,17 @@ public class InteractableUI extends UI{
     }
 
     public void onMouseHover() {
-//        getLogger().info("Mouse Hover");
-        setBackgroundColor(original.getRed(),original.getGreen(),original.getBlue(),original.getAlpha() - 0.3f);
+//        logger.info("Mouse Hover");
+        setBackgroundColor(original.getRed() - 0.3f,original.getGreen() - 0.3f,original.getBlue() - 0.3f,original.getAlpha());
     }
 
     public void mouseNotHovering() {
-//        getLogger().log("Mouse Not Hovering");
+//        logger.info("Mouse Not Hovering");
         setBackgroundColor(original.getRed(),original.getGreen(),original.getBlue(),original.getAlpha());
     }
 
     public void onMouseRightClick() {
-
+//        logger.warn("Click!");
     }
 
     @Override

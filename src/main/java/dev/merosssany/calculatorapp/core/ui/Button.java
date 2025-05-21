@@ -16,6 +16,7 @@ import static dev.merosssany.calculatorapp.core.render.ShaderProgram.load;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Button extends InteractableUI {
+    private final Matrix4f projMatrix;
     private RGBA textColor;
     private ShaderProgram shader;
     private boolean isPressed = false;
@@ -26,22 +27,24 @@ public class Button extends InteractableUI {
     private float scaleDownFactor = 0.5f;
     private FontRenderer s;
 
-    public Button(String text, float scale, RGBA color, UIVector2Df position, float width, float height, float padding, RGBA background, Window window) throws IOException {
+    public Button(String text, float scale, RGBA color, UIVector2Df position, float width, float height, float padding, RGBA background, Window window, Matrix4f projMatrix) throws IOException {
         super(position, width, height, background, window);
         this.padding = padding;
         this.text = text;
         this.textColor = color;
         scaleDownFactor = scale;
+        this.projMatrix = projMatrix;
         initBtn();
     }
 
-    public Button(String text, float scale, RGBA color, Runnable onMouseRightClick, UIVector2Df position, float width, float height, float padding, RGBA background, Window window) throws IOException {
+    public Button(String text, float scale, RGBA color, Runnable onMouseRightClick, UIVector2Df position, float width, float height, float padding, RGBA background, Window window, Matrix4f projMatrix) throws IOException {
         super(position, width, height, background, window);
         this.padding = padding;
         this.mouseClick = onMouseRightClick;
         this.text = text;
         this.textColor = color;
         scaleDownFactor = scale;
+        this.projMatrix = projMatrix;
         initBtn();
     }
 
@@ -53,13 +56,14 @@ public class Button extends InteractableUI {
         this.textColor = textColor;
     }
 
-    public Button(String text, RGBA color, UIVector2Df position, float width, float height, RGBA background, Window window, ButtonSettings settings) throws IOException {
+    public Button(String text, RGBA color, UIVector2Df position, Matrix4f projectionMatrix, float width, float height, RGBA background, Window window, ButtonSettings settings) throws IOException {
         super(position, width, height, background, window);
         this.padding = settings.padding;
         this.text = text;
         this.shader = settings.program;
         this.mouseClick = settings.onClick;
         textColor = color;
+        projMatrix = projectionMatrix;
         initBtn();
     }
 
@@ -78,8 +82,8 @@ public class Button extends InteractableUI {
     }
 
     @Override
-    public void draw(Matrix4f projMatrix) {
-        super.draw(projMatrix);
+    public void draw() {
+        super.draw();
         s.renderText(projMatrix,text,getPosition().getX(),getPosition().getY(),textColor.getRed(),textColor.getGreen(),textColor.getBlue());
     }
 

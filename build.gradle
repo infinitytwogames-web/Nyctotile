@@ -29,6 +29,7 @@ dependencies {
     implementation "org.lwjgl:lwjgl-assimp" // Example of another binding
     implementation "org.lwjgl:lwjgl-nanovg:${lwjglVersion}"
     implementation 'org.joml:joml:1.10.6'
+    implementation 'org.reflections:reflections:0.10.2'
 
 //    runtimeOnly platform("org.lwjgl:lwjgl-bom:${lwjglVersion}:natives-${os}")
     runtimeOnly "org.lwjgl:lwjgl::natives-${os}"
