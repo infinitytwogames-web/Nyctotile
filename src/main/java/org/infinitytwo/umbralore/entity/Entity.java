@@ -12,7 +12,7 @@ public abstract class Entity {
     protected AABB hitbox = new AABB(0,0,0,0,0,0); // Local-space AABB size
     protected Vector3f velocity = new Vector3f(); // But we also have this...
     protected Vector3f position = new Vector3f();
-    protected float gravity = -20.0f; // Increased gravity for a more noticeable effect (original -0.08f was too small)
+    protected float gravity = -22.7f; // Increased gravity for a more noticeable effect (original -0.08f was too small)
     protected GridMap world;
     private boolean isGrounded = false;
     protected AABB currentHitbox = hitbox;
@@ -46,7 +46,7 @@ public abstract class Entity {
         moveAxis(0, 0, velocity.z * deltaTime);
     }
 
-    private void moveAxis(float dx, float dy, float dz) {
+    protected void moveAxis(float dx, float dy, float dz) {
         float moveX = dx;
         float moveY = dy;
         float moveZ = dz;

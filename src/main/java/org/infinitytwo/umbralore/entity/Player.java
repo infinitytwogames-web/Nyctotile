@@ -42,7 +42,7 @@ public class Player extends Entity {
         this.data = data;
         this.camera = camera;
 
-        hitbox = new AABB(0,0,0,0.6f,1.8f,0.6f);
+        hitbox = new AABB(-0.3f,0,-0.3f,0.3f,1.8f,0.3f);
         camera.setPosition(position.x, position.y, position.z);
     }
 
@@ -91,6 +91,12 @@ public class Player extends Entity {
                 break;
             }
         }
+    }
+
+    @Override
+    protected void moveAxis(float dx, float dy, float dz) {
+        super.moveAxis(dx, dy, dz);
+        camera.setPosition(position.x,position.y + 1.67f,position.z);
     }
 
     @Override

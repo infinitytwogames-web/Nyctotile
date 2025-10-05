@@ -60,8 +60,6 @@ public class Screen {
             if (hoveringNow && !hoverHandled) {
                 if (!ui.isHovering()) {ui.setHovering(true);
                     ui.onMouseHover(new MouseHoverEvent(mousePosition));
-
-                    System.out.println("HOVER");
                 }
                 hoverHandled = true;
             } else {

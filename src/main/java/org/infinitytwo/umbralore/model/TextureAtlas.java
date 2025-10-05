@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static org.lwjgl.opengl.GL11.GL_MAX_TEXTURE_SIZE;
+import static org.lwjgl.opengl.GL11.glGetInteger;
+
 public class TextureAtlas {
     protected int rows;
     protected int columns;
@@ -98,6 +101,11 @@ public class TextureAtlas {
     public Texture build() {
         atlasWidth = imageWidth * columns;
         atlasHeight = imageHeight * rows;
+
+        int maxSize = glGetInteger(GL_MAX_TEXTURE_SIZE);
+        if (atlasWidth > maxSize || atlasHeight > maxSize) {
+            throw new IllegalStateException("TextureAtlas too large for GPU: " + maxSize);
+        }
 
         if (plain != null) {
             plain.cleanup();

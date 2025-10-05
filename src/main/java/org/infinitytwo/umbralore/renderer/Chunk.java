@@ -43,7 +43,6 @@ public class Chunk {
     public static final int SIZE_Z = 16;
 
     private final Vector2i chunkPos;
-
     private final int[] blocks;
     private final Map<Vector3i, byte[]> blockData = new HashMap<>();
 
@@ -244,7 +243,6 @@ public class Chunk {
 
         // Create and build the new mesh data
         this.meshData = buildMeshData();
-        System.out.println("Vertexes: "+this.meshData.getVertexCount());
         if (this.meshData.getVertexCount() > 0) {
             this.meshData.build();
             uploadMesh(this.meshData);

@@ -104,7 +104,6 @@ public class Window {
 //        EventBus.post(new WindowResizedEvent(width,height,this));
 
         glfwKeyCallback = GLFW.glfwSetKeyCallback(window, (windowHandle, key, scancode, action, mods) -> {
-            logger.info(isFocused());
             if (isFocused()) EventBus.post(new KeyPressEvent(key, action, mods));
         });
 

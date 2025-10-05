@@ -6,6 +6,7 @@ import org.infinitytwo.umbralore.constants.ShaderFiles;
 import org.infinitytwo.umbralore.event.SubscribeEvent;
 import org.infinitytwo.umbralore.event.bus.EventBus;
 import org.infinitytwo.umbralore.event.state.WindowResizedEvent;
+import org.infinitytwo.umbralore.model.TextureAtlas;
 import org.infinitytwo.umbralore.ui.UI;
 import org.joml.Matrix4f;
 import org.joml.Vector2f; // Added for texture coordinates
@@ -129,6 +130,42 @@ public class UIBatchRenderer {
 
         System.arraycopy(quad, 0, vertexData, vertexDataIndex, quad.length);
         vertexDataIndex += quad.length;
+    }
+
+    public void queueTextured(int x, int y, float w, float h, int textureIndex, TextureAtlas atlas, RGBA color) {
+        if (vertexDataIndex + FLOATS_PER_QUAD > vertexData.length) {
+            flush();
+            begin();
+        }
+
+        // Bind the atlas before writing vertices
+        atlas.getTexture().bind();
+
+        // Get UVs from atlas
+        float[] uv = atlas.getUVCoords(textureIndex);
+        float u0 = uv[0];
+        float v0 = uv[1];
+        float u1 = uv[2];
+        float v1 = uv[3];
+
+        float[] quad = {
+                // First triangle
+                x,     y,     color.r(), color.g(), color.b(), color.a(), u0, v0,
+                x,     y + h, color.r(), color.g(), color.b(), color.a(), u0, v1,
+                x + w, y + h, color.r(), color.g(), color.b(), color.a(), u1, v1,
+
+                // Second triangle
+                x,     y,     color.r(), color.g(), color.b(), color.a(), u0, v0,
+                x + w, y + h, color.r(), color.g(), color.b(), color.a(), u1, v1,
+                x + w, y,     color.r(), color.g(), color.b(), color.a(), u1, v0
+        };
+
+        System.arraycopy(quad, 0, vertexData, vertexDataIndex, quad.length);
+        vertexDataIndex += quad.length;
+
+        // Tell shader we are using a texture
+        int locUseTexture = glGetUniformLocation(shaderProgramId, "useTexture");
+        glUniform1i(locUseTexture, 1);
     }
 
     public void begin() {

@@ -1,6 +1,5 @@
 package org.infinitytwo.umbralore.ui.input;
 
-import org.infinitytwo.umbralore.Main;
 import org.infinitytwo.umbralore.RGB;
 import org.infinitytwo.umbralore.event.bus.EventBus;
 import org.infinitytwo.umbralore.event.SubscribeEvent;
@@ -9,10 +8,9 @@ import org.infinitytwo.umbralore.event.input.KeyPressEvent;
 import org.infinitytwo.umbralore.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.event.input.MouseHoverEvent;
 import org.infinitytwo.umbralore.renderer.FontRenderer;
-import org.infinitytwo.umbralore.ui.Cursor;
+import org.infinitytwo.umbralore.ui.Caret;
 import org.infinitytwo.umbralore.ui.Label;
 import org.infinitytwo.umbralore.ui.Screen;
-import org.infinitytwo.umbralore.ui.builder.UIBuilder;
 import org.infinitytwo.umbralore.ui.position.Anchor;
 import org.infinitytwo.umbralore.ui.position.Pivot;
 import org.joml.Vector2i;
@@ -22,7 +20,7 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public abstract class TextInput extends Label {
     private int index = 0;
-    private final Cursor caret;
+    private final Caret caret;
     private boolean input;
     private final StringBuilder builder = new StringBuilder();
     private boolean submitted;
@@ -33,7 +31,7 @@ public abstract class TextInput extends Label {
         super(screen, renderer1, color);
         this.screen = screen;
 
-        caret = new Cursor(screen.getUIBatchRenderer(), (int) this.textRenderer.getFontHeight() + 3);
+        caret = new Caret(screen.getUIBatchRenderer(), (int) this.textRenderer.getFontHeight() + 3);
         caret.setActive(false);
         screen.register(caret);
 
@@ -85,7 +83,6 @@ public abstract class TextInput extends Label {
         if (e.getAction() == GLFW_PRESS ||
             e.getAction() == GLFW_REPEAT
         ) {
-            System.out.println("Press");
             if (e.getKey() == GLFW_KEY_ESCAPE) unfocus();
             else if (e.getKey() == GLFW_KEY_RIGHT) index = clamp(index+1,0,builder.length());
             else if (e.getKey() == GLFW_KEY_LEFT) index = clamp(index -1, 0, builder.length());
@@ -150,13 +147,11 @@ public abstract class TextInput extends Label {
         Vector2i mousePosition = transformWindowToVirtual(e.window, e.x, e.y);
         if (!isPointWithinRectangle(getPosition(), mousePosition, getEnd())) {
             unfocus();
-            System.out.println("outside");
         }
     }
 
     @SubscribeEvent
     public void onCharacterPressed(CharacterInputEvent e) {
-        System.out.println("Word");
         if (input) {
             builder.insert(index, e.character); // insert at index
             index++;
@@ -196,7 +191,6 @@ public abstract class TextInput extends Label {
     }
 
     private void backspace() {
-        System.out.println("backspace");
         if (index == 0) return;
         index = clamp(index-1, 0, builder.length());
         builder.deleteCharAt(index);

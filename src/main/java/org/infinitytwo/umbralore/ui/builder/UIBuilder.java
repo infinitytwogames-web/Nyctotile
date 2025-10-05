@@ -46,16 +46,6 @@ public abstract class UIBuilder<T extends UI> implements IBuilder<T> {
         return this;
     }
 
-    public UIBuilder<T> index(int index) {
-        ui.setIndex(index);
-        return this;
-    }
-
-    public UIBuilder<T> texture(Image texture) {
-        ui.setTexture(texture);
-        return this;
-    }
-
     public UIBuilder<T> parent(UI parent) {
         ui.setParent(parent);
         return this;

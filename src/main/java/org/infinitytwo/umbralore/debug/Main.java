@@ -7,6 +7,7 @@ import org.infinitytwo.umbralore.data.ChunkData;
 import org.infinitytwo.umbralore.data.PlayerData;
 import org.infinitytwo.umbralore.entity.Player;
 import org.infinitytwo.umbralore.event.SubscribeEvent;
+import org.infinitytwo.umbralore.event.bus.EventBus;
 import org.infinitytwo.umbralore.event.bus.LocalEventBus;
 import org.infinitytwo.umbralore.event.input.CharacterInputEvent;
 import org.infinitytwo.umbralore.event.input.KeyPressEvent;
@@ -18,6 +19,7 @@ import org.infinitytwo.umbralore.model.TextureAtlas;
 import org.infinitytwo.umbralore.network.client.ClientNetworkThread;
 import org.infinitytwo.umbralore.registry.BlockDataReader;
 import org.infinitytwo.umbralore.registry.BlockRegistry;
+import org.infinitytwo.umbralore.registry.ResourceManager;
 import org.infinitytwo.umbralore.renderer.*;
 import org.infinitytwo.umbralore.ui.Screen;
 import org.infinitytwo.umbralore.ui.builtin.Background;
@@ -73,6 +75,7 @@ public class Main {
     private static Screen pauseScreen;
     private static Player player;
     private static boolean setPosition;
+    private static TextureAtlas itemAtlas;
 
     public static void main(String[] args) {
         Display.enable();
@@ -142,10 +145,6 @@ public class Main {
                 mouseStates.put(button, glfwGetMouseButton(window.getWindowHandle(), button) == GLFW_PRESS);
             }
 
-            // [CRITICAL FIX: Removed redundant and problematic cursor line]
-            // ORIGINAL LINE: glfwSetInputMode(window.getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            // This line MUST BE REMOVED because pauseGame() already manages the cursor state based on 'locked'.
-
             mouse.update(window.getWindowHandle());
 
             // --- GAME LOGIC GATED BY PAUSE STATE ---
@@ -199,7 +198,7 @@ public class Main {
     }
 
     private static void applyPhysics(double fixedDelta) {
-        player.savePrevPosition();              // store previous for interpolation
+//        player.savePrevPosition();
         player.update((float) fixedDelta);
     }
 
@@ -207,16 +206,17 @@ public class Main {
         window = new Window(1000, 512, "Umbralore");
         Display.init();
         window.initOpenGL();
+        EventBus.register(Main.class);
 
-        // ADDED FIX: Explicitly trigger the window resize event to ensure
-        // Display.width is non-zero before UI elements are created.
-        Display.onWindowResize(new WindowResizedEvent(window));
+        Display.onWindowResize(new WindowResizedEvent(1000,512,window));
     }
 
     private static Screen setPos;
 
     private static void construction() {
         atlas = new TextureAtlas(2, 4);
+        itemAtlas = new TextureAtlas(2, 5);
+
         registry = new BlockRegistry();
         textRenderer = new FontRenderer("src/main/resources/font.ttf", 16);
 
@@ -229,7 +229,6 @@ public class Main {
                 String[] pos = data.split(" ");
                 Vector3f p = new Vector3f(Float.parseFloat(pos[0]), Float.parseFloat(pos[1]), Float.parseFloat(pos[2]));
                 player.setPosition(p);
-                System.out.println(p);
             }
 
             @SubscribeEvent
@@ -371,6 +370,9 @@ public class Main {
 
         player = new Player(PlayerData.shell(""), map, camera, window);
         player.setPosition(0, 150, 0);
+
+        ResourceManager.blocks = atlas;
+        ResourceManager.items = itemAtlas;
     }
 
 
@@ -450,15 +452,6 @@ public class Main {
         player.handleInput((float) delta);
         player.draw();
 
-        Vector3f interpolated = new Vector3f(player.getPrevPosition())
-                .lerp(player.getPosition(), alpha);
-
-        // Place camera at center of player hitbox
-        Vector3f camPos = new Vector3f(interpolated).add(player.getHitbox().maxX * 0.5f, player.getHitbox().maxY - 0.2f, player.getHitbox().maxZ * 0.5f);
-
-        camera.setPosition(camPos);
-
-
         GL20.glUseProgram(0);
         Display.prepare2d();
 
@@ -515,7 +508,6 @@ public class Main {
 
     @SubscribeEvent
     public static void onKeyPress(KeyPressEvent event) {
-        System.exit(0);
         if (event.getAction() == GLFW_PRESS) {
             if (event.getKey() == GLFW_KEY_ESCAPE ||
                     event.getKey() == GLFW_KEY_E

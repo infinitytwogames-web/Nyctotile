@@ -48,6 +48,30 @@ public class RGB {
         this.blue = blue;
     }
 
+    public float r() {
+        return getRed();
+    }
+
+    public float g() {
+        return getGreen();
+    }
+
+    public float b() {
+        return getBlue();
+    }
+
+    public void r(int r) {
+        setRed(r);
+    }
+
+    public void g(int g) {
+        setGreen(g);
+    }
+
+    public void b(int b) {
+        setBlue(b);
+    }
+
     public void set(float r, float g, float b) {
         this.red = r;
         this.blue = b;

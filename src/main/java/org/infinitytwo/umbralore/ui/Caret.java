@@ -6,7 +6,7 @@ import org.infinitytwo.umbralore.event.input.MouseHoverEvent;
 import org.infinitytwo.umbralore.renderer.UIBatchRenderer;
 import org.infinitytwo.umbralore.ui.builder.UIBuilder;
 
-public class Cursor extends UpdatableUI {
+public class Caret extends UpdatableUI {
     private float blinkTimer = 0f;
     private boolean visible = true;
     private boolean active = true;
@@ -15,7 +15,7 @@ public class Cursor extends UpdatableUI {
         return new CaretBuilder(renderer,height);
     }
 
-    public Cursor(UIBatchRenderer renderer, int height) {
+    public Caret(UIBatchRenderer renderer, int height) {
         super(renderer);
         setWidth(5);
         setHeight(height);
@@ -69,9 +69,9 @@ public class Cursor extends UpdatableUI {
         this.active = active;
     }
 
-    public static class CaretBuilder extends UIBuilder<Cursor> {
+    public static class CaretBuilder extends UIBuilder<Caret> {
         public CaretBuilder(UIBatchRenderer renderer, int height) {
-            super(renderer, new Cursor(renderer, height));
+            super(renderer, new Caret(renderer, height));
         }
 
         public CaretBuilder active(boolean active) {

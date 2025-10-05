@@ -9,7 +9,7 @@ public class RGBA extends RGB {
     }
 
     public RGBA() {
-        super(1,1,1);
+        super();
     }
 
     public RGBA(float red, float green, float blue, float alpha) {
@@ -46,5 +46,13 @@ public class RGBA extends RGB {
         blue = color.blue;
         alpha = color.alpha;
         return this;
+    }
+
+    public float a() {
+        return getAlpha();
+    }
+
+    public void a(int a) {
+        setAlpha(a);
     }
 }

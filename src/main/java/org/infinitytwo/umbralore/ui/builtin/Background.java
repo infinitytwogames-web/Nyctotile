@@ -1,14 +1,12 @@
 package org.infinitytwo.umbralore.ui.builtin;
 
 import org.infinitytwo.umbralore.Display;
-import org.infinitytwo.umbralore.event.SubscribeEvent;
-import org.infinitytwo.umbralore.event.bus.EventBus;
 import org.infinitytwo.umbralore.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.event.input.MouseHoverEvent;
-import org.infinitytwo.umbralore.event.state.WindowResizedEvent;
 import org.infinitytwo.umbralore.renderer.UIBatchRenderer;
 import org.infinitytwo.umbralore.ui.UI;
 import org.infinitytwo.umbralore.ui.builder.UIBuilder;
+import org.infinitytwo.umbralore.ui.component.Scale;
 import org.infinitytwo.umbralore.ui.position.Anchor;
 import org.infinitytwo.umbralore.ui.position.Pivot;
 import org.joml.Vector2i;
@@ -18,10 +16,10 @@ import org.joml.Vector2i;
  * It automatically subscribes to WindowResizedEvent to maintain full-screen size.
  */
 public class Background extends UI {
+    public Scale scale = new Scale(1,1);
+
     public Background(UIBatchRenderer renderer) {
         super(renderer);
-        // Register this instance with the EventBus to receive WindowResizedEvent
-        EventBus.register(this);
     }
 
     @Override
@@ -44,14 +42,11 @@ public class Background extends UI {
 
     }
 
-    /**
-     * Resizes the UI element to match the new window dimensions.
-     * @param e The WindowResizedEvent containing the new dimensions.
-     */
-    @SubscribeEvent
-    public void onWindowResize(WindowResizedEvent e) {
-        width = Display.width;
-        height = Display.height;
+    @Override
+    public void draw() {
+        setWidth(scale.getWidth());
+        setHeight(scale.getHeight());
+        super.draw();
     }
 
     /**

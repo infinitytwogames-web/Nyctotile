@@ -7,6 +7,7 @@ import org.infinitytwo.umbralore.ui.component.Text;
 import org.infinitytwo.umbralore.ui.position.Anchor;
 import org.infinitytwo.umbralore.ui.position.Pivot;
 import org.infinitytwo.umbralore.ui.builder.UIBuilder;
+import org.infinitytwo.umbralore.ui.position.TruncateMode;
 import org.joml.Vector2i;
 
 public abstract class Label extends UI {
@@ -23,12 +24,7 @@ public abstract class Label extends UI {
     }
 
     public void setTextPosition(Anchor anchor, Pivot pivot, Vector2i offset) {
-        text.setPosition(anchor,pivot,offset);
-    }
-
-    @Override
-    public void cleanup() {
-        textRenderer.cleanup();
+        text.setPosition(anchor, pivot, offset);
     }
 
     @Override
@@ -61,12 +57,34 @@ public abstract class Label extends UI {
         return text;
     }
 
+    @Override
+    public void cleanup() {
+        // only cleanup component state, not shared renderer
+        text = null;
+    }
+
+    public String getVisibleText(FontRenderer renderer, String fullText, int maxWidth, TruncateMode mode) {
+        if (renderer.getStringWidth(fullText) <= maxWidth) return fullText;
+
+        switch (mode) {
+            case END: {
+                int cut = fullText.length();
+                while (cut > 0 && renderer.getStringWidth(fullText.substring(0, cut) + ellipsis) > maxWidth) {
+                    cut--;
+                }
+                return fullText.substring(0, cut) + ellipsis;
+            }
+            case MIDDLE: {
+                return getVisibleText(renderer, fullText, fullText.length() / 2, maxWidth); // reuse your caret-based logic
+            }
+            default:
+                return fullText;
+        }
+    }
+
     public String getVisibleText(FontRenderer renderer, String fullText, int caretIndex, int maxWidth) {
         int ellipsisWidth = (int) renderer.getStringWidth(ellipsis);
-
-        if ((int) renderer.getStringWidth(fullText) <= maxWidth)
-            return fullText;
-
+        if ((int) renderer.getStringWidth(fullText) <= maxWidth) return fullText;
         int left = caretIndex;
         int right = caretIndex;
 
@@ -87,9 +105,7 @@ public abstract class Label extends UI {
             if (candidateWidth > maxWidth) break;
 
             left = newLeft;
-            right = newRight;
-
-            // Stop if both sides reached the limits
+            right = newRight; // Stop if both sides reached the limits
             if (addLeft == 0 && addRight == 0) break;
         }
 
@@ -106,7 +122,7 @@ public abstract class Label extends UI {
         }
 
         public UIBuilder<T> textPosition(Anchor anchor, Pivot pivot, Vector2i offset) {
-            ui.setTextPosition(anchor,pivot,offset);
+            ui.setTextPosition(anchor, pivot, offset);
             return this;
         }
 
