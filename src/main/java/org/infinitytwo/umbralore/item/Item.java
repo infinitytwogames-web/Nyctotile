@@ -7,10 +7,14 @@ public class Item {
     protected int durability;
     protected int count;
 
-    public Item(ItemType type) {
+    private Item(ItemType type) {
         this.type = type;
         this.durability = type.getMaxDurability(); // defaults to full durability
         this.count = 1; // start with one item by default
+    }
+
+    public static Item of(ItemType type) {
+        return new Item(type);
     }
 
     public ItemType getType() {

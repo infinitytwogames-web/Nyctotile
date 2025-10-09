@@ -22,6 +22,8 @@ public class Hotbar extends InventoryViewer {
         super(renderer, fontRenderer, slots);
 
         EventBus.register(this);
+        rows = 1;
+        columns = slots;
     }
 
     @Override

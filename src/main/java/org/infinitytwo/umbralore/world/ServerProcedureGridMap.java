@@ -17,12 +17,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.infinitytwo.umbralore.constants.Biomes.*;
-import static org.infinitytwo.umbralore.constants.TerrainGenerationType.CANYON;
-import static org.infinitytwo.umbralore.constants.TerrainGenerationType.CORE;
-import static org.infinitytwo.umbralore.constants.TerrainGenerationType.HILL;
-import static org.infinitytwo.umbralore.constants.TerrainGenerationType.MOUNTAIN;
-
 public class ServerProcedureGridMap extends ServerGridMap {
     private final NoiseGenerationSettings dimension;
     protected long seed;

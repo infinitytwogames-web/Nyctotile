@@ -79,8 +79,8 @@ public abstract class Grid extends UI {
     }
 
     public int put(UI ui, int row, int column) {
-        if (row >= rows || column >= columns)
-            throw new IllegalArgumentException("Row/Column position out of bounds.");
+//        if (row >= rows || column >= columns)
+//            throw new IllegalArgumentException("Row/Column position out of bounds.");
 
         ui.anchor = anchor;
         ui.pivot = new Pivot(0, 0);
@@ -96,6 +96,10 @@ public abstract class Grid extends UI {
                 (columns * (cellSize + margin)) + (padding * 2),
                 (rows * (cellSize + margin)) + (padding * 2)
         );
+    }
+
+    public void setCellSize(int size) {
+        cellSize = size;
     }
 
     protected record Cell(int x, int y) {}

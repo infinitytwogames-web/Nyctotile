@@ -31,6 +31,8 @@ public class InventoryViewer extends Grid {
         int column = 0;
         int row = 0;
         slots.clear();
+        this.link = inventory;
+        setSize(inventory.getMaxSlots() / columns, columns);
 
         inventory.getEventBus().register(this);
 

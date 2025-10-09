@@ -15,9 +15,9 @@ public class ItemHolder extends TextureComponent {
     private Item item;
     private final int padding = 2;
 
-    public ItemHolder(TextureAtlas atlas, Screen screen, ItemRegistry registry, FontRenderer fontRenderer) {
-        super(0, atlas, screen.getUIBatchRenderer());
-        this.registry = registry;
+    public ItemHolder(TextureAtlas atlas, Screen screen, int index, FontRenderer fontRenderer) {
+        super(index, atlas, screen.getUIBatchRenderer());
+        this.registry = null;
 
         text = new Text(fontRenderer, screen);
         text.setParent(this);
@@ -37,19 +37,16 @@ public class ItemHolder extends TextureComponent {
         }
 
         this.item = item;
-        setTextureIndex(registry.getTextureIndex(item.getType().getIndex()));
-
-        // Display stack size if > 1
-        if (item.getCount() > 1)
-            text.setText(String.valueOf(item.getCount()));
-        else
-            text.setText("");
     }
 
     @Override
     public void draw() {
         if (textureIndex >= 0) super.draw();
-        text.setText(String.valueOf(item.getCount()));
+        if (item == null) {
+            return;
+        }
+        text.setText(item.getCount() == 1? "" : String.valueOf(item.getCount()));
+        super.draw();
         text.draw();
     }
 

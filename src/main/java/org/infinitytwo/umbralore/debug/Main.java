@@ -3,8 +3,11 @@ package org.infinitytwo.umbralore.debug;
 import com.moandjiezana.toml.Toml;
 import org.infinitytwo.umbralore.*;
 import org.infinitytwo.umbralore.block.*;
+import org.infinitytwo.umbralore.constants.Material;
 import org.infinitytwo.umbralore.data.ChunkData;
+import org.infinitytwo.umbralore.data.ItemType;
 import org.infinitytwo.umbralore.data.PlayerData;
+import org.infinitytwo.umbralore.data.TextComponent;
 import org.infinitytwo.umbralore.entity.Player;
 import org.infinitytwo.umbralore.event.SubscribeEvent;
 import org.infinitytwo.umbralore.event.bus.EventBus;
@@ -14,15 +17,18 @@ import org.infinitytwo.umbralore.event.input.KeyPressEvent;
 import org.infinitytwo.umbralore.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.event.state.WindowResizedEvent; // ADDED: Import for the explicit resize call
 import org.infinitytwo.umbralore.exception.IllegalChunkAccessExecption;
+import org.infinitytwo.umbralore.item.Item;
 import org.infinitytwo.umbralore.logging.Logger;
 import org.infinitytwo.umbralore.model.TextureAtlas;
 import org.infinitytwo.umbralore.network.client.ClientNetworkThread;
 import org.infinitytwo.umbralore.registry.BlockDataReader;
 import org.infinitytwo.umbralore.registry.BlockRegistry;
+import org.infinitytwo.umbralore.registry.ItemRegistry;
 import org.infinitytwo.umbralore.registry.ResourceManager;
 import org.infinitytwo.umbralore.renderer.*;
 import org.infinitytwo.umbralore.ui.Screen;
 import org.infinitytwo.umbralore.ui.builtin.Background;
+import org.infinitytwo.umbralore.ui.builtin.Hotbar;
 import org.infinitytwo.umbralore.ui.input.TextInput;
 import org.infinitytwo.umbralore.ui.position.Anchor;
 import org.infinitytwo.umbralore.ui.position.Pivot;
@@ -76,6 +82,9 @@ public class Main {
     private static Player player;
     private static TextureAtlas itemAtlas;
     private static Mouse mouse;
+    private static ItemRegistry itemRegistry;
+    private static Hotbar hotbar;
+    private static Screen mainScreen;
 
     public static void main(String[] args) {
         Display.enable();
@@ -208,14 +217,13 @@ public class Main {
         window.initOpenGL();
         EventBus.register(Main.class);
 
-        Display.onWindowResize(new WindowResizedEvent(1000,512,window));
+        Display.onWindowResize(new WindowResizedEvent(1000, 512, window));
     }
 
     private static Screen setPos;
 
     private static void construction() {
         atlas = new TextureAtlas(2, 4);
-        itemAtlas = new TextureAtlas(2, 5);
 
         registry = new BlockRegistry();
         textRenderer = new FontRenderer("src/main/resources/font.ttf", 16);
@@ -265,10 +273,10 @@ public class Main {
         setPos.register(input);
 
         try {
-            registry.register(new GrassBlockType(atlas.addTexture("src/main/resources/grass_side.png")));
-            registry.register(new DirtBlockType(atlas.addTexture("src/main/resources/dirt.png")));
-            registry.register(new StoneBlockType(atlas.addTexture("src/main/resources/stone.png")));
-            registry.register(new BedrockBlockType(atlas.addTexture("src/main/resources/pick.png")));
+            registry.register(new GrassBlockType(atlas.addTexture("src/main/resources/grass_side.png", true)));
+            registry.register(new DirtBlockType(atlas.addTexture("src/main/resources/dirt.png", true)));
+            registry.register(new StoneBlockType(atlas.addTexture("src/main/resources/stone.png", true)));
+            registry.register(new BedrockBlockType(atlas.addTexture("src/main/resources/pick.png", true)));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -324,6 +332,34 @@ public class Main {
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
         }
+
+        ItemType i = new ItemType.Builder()
+                .material(Material.GRASS)
+                .type(Item.ItemBehaviour.ITEM)
+                .name(new TextComponent("Hello", new RGB(1, 1, 1)))
+                .build();
+
+        try {
+            itemRegistry = new ItemRegistry();
+            itemAtlas = ItemRegistry.getTextureAtlas();
+            itemRegistry.register(i, itemAtlas.addTexture("src/main/resources/pickaxe.png", false));
+
+            itemAtlas.build();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        map = new GridMap(registry);
+
+        player = new Player(PlayerData.shell(""), map, camera, window);
+        player.setPosition(0, 150, 0);
+        player.adjust();
+        player.getInventory().set(0, Item.of(i));
+
+        mainScreen = new Screen(renderer, window);
+        hotbar = new Hotbar(mainScreen, textRenderer, 9);
+        hotbar.linkInventory(player.getInventory());
+        mainScreen.register(hotbar);
     }
 
     private static void init() {
@@ -355,22 +391,6 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        map = new GridMap(registry);
-//        new Generator().generateBiomeChunkHeightmap(
-//                NoiseGenerationSettings.getDefault(
-//                        561174,
-//                        overworld.biomes
-//                ),
-//                new GridMap.ChunkPos(0,0),
-//                overworld.biomes,
-//                shaderProgram,
-//                map,
-//                atlas
-//        );
-
-        player = new Player(PlayerData.shell(""), map, camera, window);
-        player.setPosition(0, 150, 0);
-
         ResourceManager.blocks = atlas;
         ResourceManager.items = itemAtlas;
     }
@@ -379,24 +399,18 @@ public class Main {
     private static boolean isEscKeyDown = false;
 
     private static void handleInput(boolean locked) {
-        // [FIXED: Removed cursor management from here]
-
-        // Only allow movement if UNPAUSED (!locked)
-//        if (!locked) {
-        if (isKeyPressed(GLFW_KEY_E)) {
-            pauseGame();
+        if (!locked) {
+            if (isKeyPressed(GLFW_KEY_W)) camera.moveForward((float) delta);
+            if (isKeyPressed(GLFW_KEY_S)) camera.moveBackward((float) delta);
+            if (isKeyPressed(GLFW_KEY_A)) camera.moveLeft((float) delta);
+            if (isKeyPressed(GLFW_KEY_D)) camera.moveRight((float) delta);
+            if (isKeyPressed(GLFW_KEY_LEFT)) camera.rotate((float) (-delta) * 50, 0);
+            if (isKeyPressed(GLFW_KEY_RIGHT)) camera.rotate((float) (delta) * 50, 0);
+            if (isKeyPressed(GLFW_KEY_UP)) camera.rotate(0, (float) delta * 50);
+            if (isKeyPressed(GLFW_KEY_DOWN)) camera.rotate(0, (float) -delta * 50);
+            if (isKeyPressed(GLFW_KEY_SPACE)) camera.moveUp((float) delta);
+            if (isKeyPressed(GLFW_KEY_LEFT_SHIFT)) camera.moveDown((float) delta);
         }
-        if (isKeyPressed(GLFW_KEY_W)) camera.moveForward((float) delta);
-        if (isKeyPressed(GLFW_KEY_S)) camera.moveBackward((float) delta);
-        if (isKeyPressed(GLFW_KEY_A)) camera.moveLeft((float) delta);
-        if (isKeyPressed(GLFW_KEY_D)) camera.moveRight((float) delta);
-        if (isKeyPressed(GLFW_KEY_LEFT)) camera.rotate((float) (-delta) * 50, 0);
-        if (isKeyPressed(GLFW_KEY_RIGHT)) camera.rotate((float) (delta) * 50, 0);
-        if (isKeyPressed(GLFW_KEY_UP)) camera.rotate(0, (float) delta * 50);
-        if (isKeyPressed(GLFW_KEY_DOWN)) camera.rotate(0, (float) -delta * 50);
-        if (isKeyPressed(GLFW_KEY_SPACE)) camera.moveUp((float) delta);
-        if (isKeyPressed(GLFW_KEY_LEFT_SHIFT)) camera.moveDown((float) delta);
-//        }
     }
 
     // This method handles the state flip and cursor management correctly.
@@ -426,11 +440,6 @@ public class Main {
             outliner.render(new Vector3f(hit.blockPos()), camera, window, new Vector3f());
         }
 
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
         window.getSize();
         Matrix4f ortho = new Matrix4f().ortho(0, window.getWidth(), window.getHeight(), 0, -1, 1);
         glViewport(0, 0, (int) window.getWidth(), (int) window.getHeight());
@@ -450,13 +459,14 @@ public class Main {
 
         camera.update((float) delta);
         player.handleInput((float) delta);
-        player.draw();
 
         GL20.glUseProgram(0);
         Display.prepare2d();
 
+        mainScreen.draw();
+
         if (locked) {
-            setPos.draw();
+            pauseScreen.draw();
         }
 
         Display.prepare3d();
@@ -509,9 +519,7 @@ public class Main {
     @SubscribeEvent
     public static void onKeyPress(KeyPressEvent event) {
         if (event.getAction() == GLFW_PRESS) {
-            if (event.getKey() == GLFW_KEY_ESCAPE ||
-                    event.getKey() == GLFW_KEY_E
-            ) {
+            if (event.getKey() == GLFW_KEY_ESCAPE) {
                 locked = !locked;
             }
         } else keyStates.put(event.getKey(), event.getAction() == GLFW_PRESS || event.getAction() == GLFW_REPEAT);

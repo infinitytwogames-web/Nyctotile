@@ -26,7 +26,7 @@ void main() {
 """;
 
     public static final String uiFragment = """
-    #version 330 core // Specify GLSL version 3.30
+                #version 330 core // Specify GLSL version 3.30
 
                 // --- Input Varyings (interpolated from the vertex shader) ---
                 in vec4 vColor;      // Interpolated color from the vertex shader
@@ -34,7 +34,7 @@ void main() {
 
                 // --- Uniforms (data passed from your Java code) ---
                 uniform sampler2D u_texture;  // The texture sampler (for images, text glyphs)
-                uniform bool u_useTexture;    // Flag to determine if texturing should be used
+                uniform bool useTexture;    // Flag to determine if texturing should be used
 
                 // --- Output Fragment Color ---
                 out vec4 FragColor; // The final color of the fragment
@@ -42,16 +42,15 @@ void main() {
                 void main() {
                     vec4 finalColor;
 
-                    
-                        // Otherwise, just use the interpolated vertex color (for solid colored UI elements)
-                        finalColor = vColor;
-                    
+                    if (useTexture == true) {
+                          finalColor = texture(u_texture, vTexCoord);
+                    } else { finalColor = vColor; }
 
                     // You generally want blending enabled for UI (e.g., glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA))
                     // to handle transparency correctly.
                     FragColor = finalColor;
                 }
-""";
+                """;
 
     public static final String textVertex = """
             #version 330 core

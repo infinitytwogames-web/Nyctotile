@@ -25,15 +25,16 @@ public class Screen {
     private float delta; // in seconds
     private final ConcurrentLinkedQueue<Runnable> runs = new ConcurrentLinkedQueue<>();
     private final FontRenderer renderer;
-    private final Tooltip tooltip = new Tooltip(this);
+    private final Tooltip tooltip;
     private boolean showTooltip = false;
 
     public Screen(UIBatchRenderer uiBatchRenderer, Window window) {
         this.uiBatchRenderer = uiBatchRenderer;
         this.window = window;
         this.uis = new ArrayList<>();
+        tooltip = new Tooltip(this);
 
-        renderer = new FontRenderer("src/main/resources/font.tff",32);
+        renderer = new FontRenderer("src/main/resources/font.ttf",32);
 
         EventBus.register(this);
     }

@@ -15,8 +15,8 @@ public class ItemType {
     private transient int index;
 
     private ItemType(Item.ItemBehaviour itemBehaviour, boolean isEatable, boolean isDrinkable,
-                     boolean fireResistant, float nutrients, float saturation,
-                     Recipe recipe, int maxDurability, Material material, TextComponent name) {
+                    boolean fireResistant, float nutrients, float saturation,
+                    Recipe recipe, int maxDurability, Material material, TextComponent name) {
         this.itemBehaviour = itemBehaviour;
         this.isEatable = isEatable;
         this.isDrinkable = isDrinkable;

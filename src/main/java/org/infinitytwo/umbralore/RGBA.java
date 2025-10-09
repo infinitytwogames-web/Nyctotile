@@ -17,6 +17,11 @@ public class RGBA extends RGB {
         this.alpha = alpha;
     }
 
+    public RGBA(RGBA color) {
+        super(color);
+        alpha = color.alpha;
+    }
+
     public float getAlpha() {
         return alpha;
     }

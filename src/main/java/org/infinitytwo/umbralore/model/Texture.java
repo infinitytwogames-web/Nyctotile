@@ -4,6 +4,8 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 
+import java.awt.*;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,6 +18,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static org.lwjgl.opengl.GL11.*;
+import static org.lwjgl.opengl.GL13.GL_TEXTURE0;
+import static org.lwjgl.opengl.GL13.glActiveTexture;
 import static org.lwjgl.opengl.GL30.glGenerateMipmap; // For mipmaps
 
 public class Texture {
@@ -95,6 +99,41 @@ public class Texture {
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    /**
+     * Flips a BufferedImage horizontally (along the Y-axis).
+     *
+     * @param originalImage The BufferedImage to flip.
+     * @return A new BufferedImage that is the horizontal mirror of the original.
+     */
+    public static BufferedImage flipXAxis(BufferedImage originalImage) {
+        int width = originalImage.getWidth();
+        int height = originalImage.getHeight();
+
+        BufferedImage flippedImage = new BufferedImage(width, height, originalImage.getType());
+        Graphics2D g2d = flippedImage.createGraphics();
+
+        // 3. Create the AffineTransform for the vertical flip
+        AffineTransform tx = new AffineTransform();
+
+        // Scale by 1.0 in the X direction (no change horizontally)
+        // Scale by -1.0 in the Y direction (the vertical flip)
+        tx.scale(1.0, -1.0);
+
+        // Translate the image back into the positive coordinate space (downward)
+        // by moving it down by its height. Scaling by -1.0 in Y moves the image
+        // from y=0..height to y=-height..0. We shift it down by -height to get
+        // it back to y=0..height.
+        tx.translate(0, -height);
+
+        // 4. Apply the transform and draw
+        g2d.transform(tx);
+        g2d.drawImage(originalImage, 0, 0, null);
+
+        g2d.dispose();
+
+        return flippedImage;
+    }
+
     private ByteBuffer convertImageToRGBA(BufferedImage image) {
         int[] pixels = new int[image.getWidth() * image.getHeight()];
         image.getRGB(0, 0, image.getWidth(), image.getHeight(), pixels, 0, image.getWidth());
@@ -117,7 +156,8 @@ public class Texture {
     }
 
 
-    public void bind() {
+    public void bind() { // This is what's called
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
     }
 

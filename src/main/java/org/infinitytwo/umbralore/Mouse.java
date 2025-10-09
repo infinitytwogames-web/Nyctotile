@@ -18,7 +18,7 @@ public class Mouse {
 
     public Mouse(Window window) {
         this.window = window;
-        itemHolder = new ItemHolder(ItemRegistry.getTextureAtlas(), Main.getCurrentScreen(), ItemRegistry.getMainRegistry(), Main.getCurrentScreen().getFontRenderer());
+        itemHolder = new ItemHolder(ItemRegistry.getTextureAtlas(), Main.getCurrentScreen(), 0, Main.getCurrentScreen().getFontRenderer());
 
         itemHolder.setPosition(new Anchor(0,0), new Pivot(0,0));
     }

@@ -3,7 +3,6 @@ package org.infinitytwo.umbralore.ui.builder;
 import org.infinitytwo.umbralore.IBuilder;
 import org.infinitytwo.umbralore.RGBA;
 import org.infinitytwo.umbralore.renderer.UIBatchRenderer;
-import org.infinitytwo.umbralore.ui.Image;
 import org.infinitytwo.umbralore.ui.UI;
 import org.infinitytwo.umbralore.ui.position.Anchor;
 import org.infinitytwo.umbralore.ui.position.Pivot;

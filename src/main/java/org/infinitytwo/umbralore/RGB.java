@@ -17,6 +17,12 @@ public class RGB {
         this.blue = 0;
     }
 
+    public RGB(RGBA color) {
+        red = color.red;
+        green = color.green;
+        blue = color.blue;
+    }
+
     public RGB add(float num) {
         this.red = red + num;
         this.green = green + num;

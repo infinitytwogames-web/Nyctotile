@@ -1,22 +1,29 @@
 package org.infinitytwo.umbralore;
 
 import org.infinitytwo.umbralore.constants.Constants;
+import org.infinitytwo.umbralore.data.Inventory;
+import org.infinitytwo.umbralore.data.ItemType;
+import org.infinitytwo.umbralore.data.TextComponent;
 import org.infinitytwo.umbralore.event.bus.EventBus;
-import org.infinitytwo.umbralore.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.event.state.WindowResizedEvent;
+import org.infinitytwo.umbralore.item.Item;
 import org.infinitytwo.umbralore.logging.Logger;
+import org.infinitytwo.umbralore.model.TextureAtlas;
+import org.infinitytwo.umbralore.registry.ItemRegistry;
+import org.infinitytwo.umbralore.registry.ResourceManager;
 import org.infinitytwo.umbralore.renderer.*;
-import org.infinitytwo.umbralore.ui.Label;
-import org.infinitytwo.umbralore.ui.Screen;
-import org.infinitytwo.umbralore.ui.TextProgressBar;
-import org.infinitytwo.umbralore.ui.UI;
-import org.infinitytwo.umbralore.ui.input.Button;
+import org.infinitytwo.umbralore.ui.*;
+import org.infinitytwo.umbralore.ui.builtin.Hotbar;
+import org.infinitytwo.umbralore.ui.builtin.InventoryViewer;
+import org.infinitytwo.umbralore.ui.builtin.ItemSlot;
+import org.infinitytwo.umbralore.ui.component.ItemHolder;
+import org.infinitytwo.umbralore.ui.component.TextureComponent;
 import org.infinitytwo.umbralore.ui.position.Anchor;
 import org.infinitytwo.umbralore.ui.position.Pivot;
 import org.joml.Matrix4f;
-import org.joml.Vector2i;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
+import java.io.IOException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static org.lwjgl.glfw.GLFW.*;
@@ -81,8 +88,6 @@ public class Main {
     }
 
     private static void construction() {
-        Display.init();
-        Display.onWindowResize(new WindowResizedEvent(window));
         ShaderProgram program = new ShaderProgram(
                 """
                         #version 330 core
@@ -130,7 +135,7 @@ public class Main {
         EventBus.register(Main.class);
         fontRenderer = new FontRenderer(Constants.fontFilePath,32);
         textRenderer = new TextBatchRenderer(fontRenderer, 1);
-        renderer = new UIBatchRenderer(program);
+        renderer = new UIBatchRenderer();
         screen = new Screen(renderer,window);
         logger.info("Constructing...");
         window.setWindowIcon("src/main/resources/assets/icon/icon.png");
@@ -139,28 +144,38 @@ public class Main {
 
     private static void init() {
         Display.init();
-        FontRenderer renderer1 = new FontRenderer("src/main/resources/assets/fonts/Main.ttf",32);
-        Button ti = new Button(screen,renderer1,new RGB(1,1,1), "Hello :)") {
-            @Override
-            public void onMouseClicked(MouseButtonEvent e) {
-                if (e.action == GLFW_PRESS) bar.incrementCurrent();
-            }
-        };
-        ti.setBackgroundColor(new RGBA(0,0,1,0.6f));
-        ti.setWidth(512);
-        ti.setHeight(150);
-        ti.setPosition(new Anchor(0.5f,0.5f),new Pivot(0.5f,0.5f));
+        Display.onWindowResize(new WindowResizedEvent(window));
 
-        bar = new TextProgressBar(screen,fontRenderer,new RGB(1,1,1),100);
-        bar.setPosition(new Anchor(0.5f,1f),new Pivot(0,0.5f),new Vector2i(0,-150));
-        bar.setBackgroundColor(0,0,0.25f,1);
-        bar.setHeight(150);
-        bar.setWidth(512);
+        // Testing Here:
+        ItemRegistry registry = ItemRegistry.getMainRegistry();
+        TextureAtlas atlas = ItemRegistry.getTextureAtlas();
+        ItemType type = new ItemType.Builder()
+                .name(new TextComponent("E",new RGB(1,1,1)))
+                .build()
+        ;
 
-        logger.info(ti.getPosition());
+        try {
+            registry.register(type, atlas.addTexture("src/main/resources/pickaxe.png",false));
 
-        screen.register(ti);
-        screen.register(bar);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        ResourceManager.items = atlas;
+        Inventory inventory = new Inventory(9);
+        inventory.set(0, Item.of(type));
+        inventory.set(1, Item.of(type));
+        inventory.set(2, Item.of(type));
+        inventory.set(3, Item.of(type));
+        inventory.set(4, Item.of(type));
+        inventory.set(5, Item.of(type));
+
+        InventoryViewer viewer = new InventoryViewer(screen,fontRenderer,3);
+        viewer.setCellSize(128);
+        viewer.linkInventory(inventory);
+
+        screen.register(viewer);
+        atlas.build();
     }
 
     private static void render() {
