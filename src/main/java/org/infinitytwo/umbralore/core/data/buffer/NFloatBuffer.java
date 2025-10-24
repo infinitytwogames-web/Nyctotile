@@ -60,9 +60,8 @@ import static org.lwjgl.system.MemoryUtil.memFree;
  * @see org.lwjgl.system.MemoryUtil
  */
 public final class NFloatBuffer extends NativeBuffer {
-    private FloatBuffer buffer;
-
-    private static final int INITIAL = 4096; // 4 KB
+    private FloatBuffer buffer;// 4 KB
+    private static final int INITIAL = 4096;
 
     /**
      * Creates a new NFloatBuffer. This allocates a {@code INITIAL} of

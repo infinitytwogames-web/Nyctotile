@@ -13,23 +13,31 @@ public abstract class Entity {
     protected final String id;
     protected final Window window;
     protected AABB hitbox = new AABB(0,0,0,0,0,0); // Local-space AABB size
-    protected Vector3f velocity = new Vector3f(); // But we also have this...
+    protected Vector3f velocity = new Vector3f();
     protected Vector3f position = new Vector3f();
-    protected float gravity = -22.7f; // Increased gravity for a more noticeable effect (original -0.08f was too small)
+    protected float gravity = -22.7f;
     protected GridMap world;
     protected Inventory inventory;
     private boolean isGrounded = false;
     protected int modelIndex;
     protected float movementSpeed = 7;
     protected float jumpStrength = 7.2f;
-    private Vector3f scale;
-    private Vector3f rotation;
+    private Vector3f scale = new Vector3f(1,1,1);
+    private Vector3f rotation = new Vector3f();
 
     protected Entity(String id, GridMap map, Window window, Inventory inventory) {
         this.id = id;
         this.world = map;
         this.window = window;
         this.inventory = inventory;
+    }
+
+    public Entity(String id, Window window, GridMap world, Inventory inventory, AABB hitbox) {
+        this.id = id;
+        this.window = window;
+        this.world = world;
+        this.inventory = inventory;
+        this.hitbox = hitbox;
     }
 
     public Inventory getInventory() {

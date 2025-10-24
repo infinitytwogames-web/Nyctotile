@@ -64,11 +64,6 @@ public abstract class TextInput extends Label {
     }
 
     @Override
-    public void draw() {
-        super.draw();
-    }
-
-    @Override
     public void setPosition(Anchor anchor, Pivot pivot) {
         super.setPosition(anchor, pivot);
         caret.setPosition(anchor,pivot,new Vector2i(-(width /2) +5, 0));

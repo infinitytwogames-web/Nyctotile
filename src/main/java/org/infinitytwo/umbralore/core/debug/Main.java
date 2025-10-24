@@ -1,10 +1,11 @@
 package org.infinitytwo.umbralore.core.debug;
 
-import com.moandjiezana.toml.Toml;
 import org.infinitytwo.umbralore.block.*;
 import org.infinitytwo.umbralore.core.*;
 import org.infinitytwo.umbralore.core.constants.Material;
 import org.infinitytwo.umbralore.core.data.*;
+import org.infinitytwo.umbralore.core.data.buffer.NFloatBuffer;
+import org.infinitytwo.umbralore.core.entity.Entity;
 import org.infinitytwo.umbralore.core.entity.Player;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
@@ -15,14 +16,16 @@ import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.core.event.state.WindowResizedEvent; // ADDED: Import for the explicit resize call
 import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.umbralore.core.data.Item;
+import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
 import org.infinitytwo.umbralore.core.logging.Logger;
+import org.infinitytwo.umbralore.core.model.Model;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
+import org.infinitytwo.umbralore.core.model.builder.CubeModelBuilder;
+import org.infinitytwo.umbralore.core.model.builder.ModelBuilder;
 import org.infinitytwo.umbralore.core.network.client.ClientNetworkThread;
-import org.infinitytwo.umbralore.core.registry.BlockDataReader;
-import org.infinitytwo.umbralore.core.registry.BlockRegistry;
-import org.infinitytwo.umbralore.core.registry.ItemRegistry;
-import org.infinitytwo.umbralore.core.registry.ResourceManager;
+import org.infinitytwo.umbralore.core.registry.*;
 import org.infinitytwo.umbralore.core.renderer.*;
+import org.infinitytwo.umbralore.core.ui.display.Grid;
 import org.infinitytwo.umbralore.core.ui.display.Screen;
 import org.infinitytwo.umbralore.core.ui.builtin.Background;
 import org.infinitytwo.umbralore.core.ui.builtin.Hotbar;
@@ -58,17 +61,13 @@ public class Main {
     private static Camera camera;
     private static GridMap map;
     private static FontRenderer textRenderer;
-    private static BlockDataReader reader;
     private static ShaderProgram shaderProgram;
     public static TextureAtlas atlas;
     private static Environment env;
     private static Outline outliner;
     private static double delta;
 
-    private static Vector3i pos;
     private static Overworld overworld;
-    private static Chunk chunk;
-    private static Toml toml;
     private static BlockRegistry registry = new BlockRegistry();
     private static ServerThread serverThread;
     private static ClientNetworkThread networkThread;
@@ -78,9 +77,12 @@ public class Main {
     private static Screen pauseScreen;
     private static Player player;
     private static TextureAtlas itemAtlas;
-    private static Mouse mouse;
     private static ItemRegistry itemRegistry;
     private static Screen mainScreen;
+    private static EntityRenderer entityRenderer;
+    private static Entity entity;
+    private static BlockDataReader reader;
+    private static int dynamic;
 
     public static void launchConsole() {
         // ⚠️ CRITICAL: Enforce that the Console setup runs on the EDT
@@ -168,29 +170,11 @@ public class Main {
             // --- GAME LOGIC GATED BY PAUSE STATE ---
             if (!locked) {
                 // 1. Camera Look (Must be disabled when paused)
-                camera.rotate((float) mouse.getDeltaX(), (float) -mouse.getDeltaY());
+                camera.rotate((float) Mouse.getDeltaX(), (float) -Mouse.getDeltaY());
 
                 // 2. Block Interaction (Must be disabled when paused)
                 if (isMouseJustPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
-                    GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
-                    if (hit != null) {
-                        Vector3i face = hit.hitNormal();
-                        Vector3i pos = new Vector3i(
-                                hit.blockPos().x + face.x,
-                                hit.blockPos().y + face.y,
-                                hit.blockPos().z + face.z
-                        );
-                        if (map.getBlock(pos.x, pos.y, pos.z) == null) {
-                            // FIX: Get the correct grass block ID from the registry.
-                            Block block = new Block(Main.getBlockRegistry().get(1)); // 1 is the ID for grass
-                            block.setPosition(pos.x, pos.y, pos.z);
-                            try {
-                                map.placeBlock(block);
-                            } catch (IllegalChunkAccessException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    }
+                    handleBlockInteraction();
                 } else if (isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
                     GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
                     if (hit != null) {
@@ -215,8 +199,31 @@ public class Main {
         cleanup();
     }
 
+    private static void handleBlockInteraction() {
+        GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
+        if (hit != null) {
+            Vector3i face = hit.hitNormal();
+            Vector3i pos = new Vector3i(
+                    hit.blockPos().x + face.x,
+                    hit.blockPos().y + face.y,
+                    hit.blockPos().z + face.z
+            );
+            if (map.getBlock(pos.x, pos.y, pos.z) == null) {
+                // FIX: Get the correct grass block ID from the registry.
+                Block block = new Block(Main.getBlockRegistry().get(dynamic)); // 1 is the ID for grass
+                block.setPosition(pos.x, pos.y, pos.z);
+                try {
+                    map.placeBlock(block);
+                } catch (IllegalChunkAccessException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
     private static void applyPhysics(double fixedDelta) {
         player.update((float) fixedDelta);
+        entity.update((float) fixedDelta);
     }
 
     private static void earlySetup() {
@@ -289,8 +296,6 @@ public class Main {
             throw new RuntimeException(e);
         }
         atlas.build();
-
-        reader = new BlockDataReader(registry);
 
         overworld = new Overworld(486486, registry);
 
@@ -369,14 +374,46 @@ public class Main {
         Hotbar hotbar = new Hotbar(mainScreen, textRenderer, window, 9);
         hotbar.setAtlas(itemAtlas);
         hotbar.setCellSize(128);
-        hotbar.setBackgroundColor(0,0,0,0.5f);
-        hotbar.setPosition(new Anchor(0.5f,1),new Pivot(0.5f,1));
+        hotbar.setBackgroundColor(0, 0, 0, 0.5f);
+        hotbar.setPosition(new Anchor(0.5f, 1), new Pivot(0.5f, 1));
         hotbar.updateSize();
         hotbar.linkInventory(player.getInventory());
         hotbar.refresh();
         mainScreen.register(hotbar);
 
-        Mouse.init(itemAtlas,mainScreen,-1,textRenderer,window);
+        Mouse.init(itemAtlas, mainScreen, -1, textRenderer, window);
+
+        // MODEL RENDERING TEST
+        Model model = new Model();
+        AABB box = new AABB(0, 0, 0, 1, 1, 1);
+        new ModelBuilder(box).cube(model.getVerticesBuffer(), new float[]{0, 0, 1, 1});
+        int index = ModelRegistry.register(model);
+
+        entity = new Entity("item", window, map, new Inventory(0), box) {
+        };
+        entity.setModelIndex(index);
+
+        entityRenderer = new EntityRenderer(atlas);
+        entityRenderer.insert(entity);
+
+        // BLOCK READING TEST
+        BlockType type = new BlockType("", false, "", 0) {
+            @BlockRegistry.Property
+            public int data = 5;
+
+            @Override
+            public void buildModel(GridMap gridMap, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer) {
+                CubeModelBuilder.standardVerticesList(map, x, y, z, atlas.getUVCoords(2), buffer);
+            }
+        };
+
+        try {
+            dynamic = registry.registerDynamicBlock(type);
+        } catch (IllegalDataTypeException e) {
+            throw new RuntimeException(e);
+        }
+
+        reader = new BlockDataReader(registry);
     }
 
     private static void init() {
@@ -461,18 +498,8 @@ public class Main {
         window.getSize();
         Matrix4f ortho = new Matrix4f().ortho(0, window.getWidth(), window.getHeight(), 0, -1, 1);
 
-        Vector3f cameraPosition = camera.getPosition();
-        textRenderer.renderText(cameraPosition.toString(), new Vector2i(0, 24), new RGB(1f, 1f, 1f));
-        textRenderer.renderText(ortho, "Yaw: " + camera.getYaw() + " Pitch: " + camera.getPitch(), new Vector2i(0, 48), new RGB(1f, 1f, 1f));
-        textRenderer.renderText(ortho, "POV: " + camera.getFov(), new Vector2i(0, 72), new RGB(1f, 1f, 1f));
-        textRenderer.renderText(ortho, "FPS: " + Math.round(1 / delta), new Vector2i(0, 96), new RGB(1f, 1f, 1f));
-        if (hit != null) {
-            textRenderer.renderText(ortho, "Placement: " + new Vector3i(hit.blockPos().add(hit.hitNormal())), new Vector2i(0, 120), new RGB(1f, 1f, 1f));
-            textRenderer.renderText(ortho, "Look At: " + hit.blockPos(), new Vector2i(0, 144), new RGB(1f, 1f, 1f));
-            textRenderer.renderText(ortho, "Face: " + hit.hitNormal(), new Vector2i(0, 172), new RGB(1f, 1f, 1f));
-            textRenderer.renderText(ortho, "Trying to place at: " + pos, new Vector2i(0, 196), new RGB(1f, 1f, 1f));
-//            textRenderer.renderText(ortho, "Block Id: "+registry.getId(map.getBlock(hit.blockPos().x,hit.blockPos().y,hit.blockPos().z).getType().getId()), new Vector2i(0, 196+16), new RGB(1f,1f,1f));
-        }
+        textRenderer.renderText(ortho, player.getPosition().toString(), new Vector2i(0, 24), new RGB(1f, 1f, 1f));
+        textRenderer.renderText(ortho, entity.getPosition().toString(), new Vector2i(0, 2 + 24 * 2), new RGB(1f, 1f, 1f));
 
         camera.update((float) delta);
         player.handleInput((float) delta);
@@ -510,13 +537,13 @@ public class Main {
         // This ensures all modifications to the GridMap are synchronized.
         // Disabled temporary
 //        dispatchTask(() -> {
-            Chunk chunk = null;
-            try {
-                chunk = Chunk.of(data, map, shaderProgram, atlas, registry); // Passed ChunkData from ServerProcedureGridMap
-            } catch (IllegalChunkAccessException e) {
+        Chunk chunk = null;
+        try {
+            chunk = Chunk.of(data, map, shaderProgram, atlas, registry); // Passed ChunkData from ServerProcedureGridMap
+        } catch (IllegalChunkAccessException e) {
 
-            }
-            map.addChunk(chunk);
+        }
+        map.addChunk(chunk);
 //        });
     }
 
@@ -535,8 +562,22 @@ public class Main {
         if (event.getAction() == GLFW_PRESS) {
             if (event.getKey() == GLFW_KEY_ESCAPE) {
                 locked = !locked;
+            } else if (event.getKey() == GLFW_KEY_Q) {
+                drop();
+            } else if (event.getKey() == GLFW_KEY_E) {
+                GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
+                try {
+                    System.out.println(reader.getData(dynamic,map.getChunk(GridMap.worldToChunk(hit.blockPos())).getData(GridMap.convertToLocalChunk(hit.blockPos())),"data").value);
+                } catch (IllegalDataTypeException e) {
+                    throw new RuntimeException(e);
+                }
             }
         } else keyStates.put(event.getKey(), event.getAction() == GLFW_PRESS || event.getAction() == GLFW_REPEAT);
+    }
+
+    private static void drop() {
+        GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
+        map.getChunk(GridMap.worldToChunk(hit.blockPos())).setData(GridMap.convertToLocalChunk(hit.blockPos()),reader.serialize(registry.get(dynamic),dynamic));
     }
 
     public static boolean isKeyJustPressed(int key) {
@@ -565,10 +606,6 @@ public class Main {
 
     public static BlockRegistry getBlockRegistry() {
         return registry;
-    }
-
-    public static Mouse getMouse() {
-        return mouse;
     }
 
     public static Screen getCurrentScreen() {

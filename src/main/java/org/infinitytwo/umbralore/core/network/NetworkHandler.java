@@ -39,8 +39,9 @@ public abstract class NetworkHandler extends Thread {
         receivedPackets.putIfAbsent(e.packet.id(),time - 30);
     }
 
+    @Deprecated
     public void registerCommand(NetworkCommand cmd) {
-//        commandHandler.handleCommand;
+
     }
 
     @Override

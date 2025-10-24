@@ -35,7 +35,7 @@ public class EntityRenderer {
 
                 // LAYOUTS
                 layout (location = 0) in vec3 vPosition;
-                layout (location = 1) in vec2 vTextCoords;
+                layout (location = 1) in vec2 vTexCoords;
                 layout (location = 2) in float vBrightness;
                 layout (location = 3) in vec3 iPosition;
 
@@ -70,7 +70,8 @@ public class EntityRenderer {
                 out vec4 FragColor;
 
                 void main() {
-                    FragColor = texture(uTexture, texCoords) * brightness;
+                    // FragColor = texture(uTexture, texCoords) * brightness;
+                    FragColor = vec4(1.0,0.0,0.0,1.0);
                 }
                 """);
 

@@ -4,10 +4,13 @@ import java.nio.Buffer;
 import java.nio.ByteOrder;
 
 public abstract class NativeBuffer implements AutoCloseable {
-    protected int written;
     protected int capacity;
+    protected int written;
+    protected static final int INITIAL = 4096;
 
-    public abstract int size();
+    public int size() { return written; }
+    public int capacity() { return capacity; }
+
     public abstract void cleanup();
     public abstract Buffer getBuffer();
     public abstract void reset();

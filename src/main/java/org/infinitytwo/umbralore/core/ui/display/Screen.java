@@ -143,7 +143,5 @@ public class Screen {
         }
     }
 
-    public void onOpen() {
-        // Initialization...
-    }
+    public void onOpen() {}
 }

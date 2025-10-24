@@ -11,7 +11,7 @@ public abstract class Grid extends UI {
     protected Map<UI, Cell> uis = new LinkedHashMap<>();
     protected int columns;
     protected int rows;
-    protected int margin;
+    protected int space;
     protected int padding;
     protected int cellSize;
 
@@ -27,8 +27,8 @@ public abstract class Grid extends UI {
         return rows;
     }
 
-    public int getMargin() {
-        return margin;
+    public int getSpace() {
+        return space;
     }
 
     public int getPadding() {
@@ -69,8 +69,8 @@ public abstract class Grid extends UI {
 
             ui.setSize(cellSize);
             ui.setOffset(
-                    (cell.x * (cellSize)) + padding,
-                    (cell.y * (cellSize)) + padding
+                    (cell.x * space) + (cell.x * (cellSize)) + padding,
+                    (cell.y * space) + (cell.y * (cellSize)) + padding
             );
 
             ui.draw();
@@ -79,7 +79,6 @@ public abstract class Grid extends UI {
 
     public int put(UI ui, int row, int column) {
         ui.setParent(this);
-//        ui.setOffset(padding);
 
         uis.put(ui, new Cell(column, row)); // column = x, row = y
         return uis.size() - 1;
@@ -87,8 +86,8 @@ public abstract class Grid extends UI {
 
     public void updateSize() {
         super.setSize(
-                (columns * (cellSize + margin)) + (padding * 2),
-                (rows * (cellSize + margin)) + (padding * 2)
+                (columns * space) + (columns * (cellSize)) + padding,
+                (rows * space) + (rows * (cellSize)) + padding
         );
     }
 
@@ -96,7 +95,8 @@ public abstract class Grid extends UI {
         cellSize = size;
     }
 
-    protected record Cell(int x, int y) {}
+    protected record Cell(int x, int y) {
+    }
 
     public static class Builder<T extends Grid> extends UIBuilder<T> {
 
@@ -104,11 +104,30 @@ public abstract class Grid extends UI {
             super(element);
         }
 
-        public Builder<T> rows(int rows) { ui.rows = rows; return this; }
-        public Builder<T> columns(int columns) { ui.columns = columns; return this; }
-        public Builder<T> cellSize(int size) { ui.cellSize = size; return this; }
-        public Builder<T> margin(int margin) { ui.margin = margin; return this; }
-        public Builder<T> padding(int padding) { ui.padding = padding; return this; }
+        public Builder<T> rows(int rows) {
+            ui.rows = rows;
+            return this;
+        }
+
+        public Builder<T> columns(int columns) {
+            ui.columns = columns;
+            return this;
+        }
+
+        public Builder<T> cellSize(int size) {
+            ui.cellSize = size;
+            return this;
+        }
+
+        public Builder<T> margin(int margin) {
+            ui.space = margin;
+            return this;
+        }
+
+        public Builder<T> padding(int padding) {
+            ui.padding = padding;
+            return this;
+        }
 
         @Override
         public UIBuilder<T> applyDefault() {

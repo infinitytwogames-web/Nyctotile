@@ -8,6 +8,7 @@ import org.infinitytwo.umbralore.core.event.input.MouseHoverEvent;
 import org.infinitytwo.umbralore.core.data.Item;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 import org.infinitytwo.umbralore.core.renderer.FontRenderer;
+import org.infinitytwo.umbralore.core.renderer.UIBatchRenderer;
 import org.infinitytwo.umbralore.core.ui.display.Grid;
 import org.infinitytwo.umbralore.core.ui.display.Screen;
 import org.jetbrains.annotations.NotNull;
@@ -23,13 +24,23 @@ public class InventoryViewer extends Grid {
     protected final List<ItemSlot> slots = new ArrayList<>();
     protected final Window window;
     private TextureAtlas atlas;
+    protected Factory factory;
 
-    public InventoryViewer(Screen renderer, FontRenderer fontRenderer, Window window, int columns) {
-        super(renderer.getUIBatchRenderer());
-        screen = renderer;
+    public InventoryViewer(Screen screen, FontRenderer fontRenderer, Window window, int columns) {
+        super(screen.getUIBatchRenderer());
+        this.screen = screen;
         this.fontRenderer = fontRenderer;
         this.columns = columns;
         this.window = window;
+    }
+
+    public InventoryViewer(Screen screen, FontRenderer fontRenderer, Window window, Factory factory, int columns) {
+        super(screen.getUIBatchRenderer());
+        this.screen = screen;
+        this.fontRenderer = fontRenderer;
+        this.window = window;
+        this.factory = factory;
+        this.columns = columns;
     }
 
     public void linkInventory(@NotNull Inventory inventory) {
@@ -44,10 +55,7 @@ public class InventoryViewer extends Grid {
         inventory.getEventBus().register(this);
 
         for (int i = 0; i < link.getMaxSlots(); i++) {
-            ItemSlot slot = new ItemSlot(screen, fontRenderer, window);
-            slot.setAtlas(atlas);
-            slot.setTextureIndex(0);
-            slot.setItem(link.get(i));
+            ItemSlot slot = getItemSlot(i);
             put(slot, row, column);
             slots.add(slot);
 
@@ -57,6 +65,20 @@ public class InventoryViewer extends Grid {
                 row++;
             }
         }
+    }
+
+    @NotNull
+    public ItemSlot getItemSlot(int i) {
+        ItemSlot result;
+        if (factory == null) {
+            ItemSlot slot = new ItemSlot(screen, fontRenderer, window);
+            slot.setAtlas(atlas);
+            slot.setItem(link.get(i));
+            result = slot;
+        } else {
+            result = factory.create(i, link.get(i), screen, fontRenderer, window);
+        }
+        return result;
     }
 
     @SubscribeEvent
@@ -150,5 +172,9 @@ public class InventoryViewer extends Grid {
     @Override
     public void cleanup() {
         if (link != null) link.getEventBus().unregister(this);
+    }
+
+    public interface Factory {
+        ItemSlot create(int slot, Item item, Screen screen, FontRenderer fontRenderer, Window window);
     }
 }

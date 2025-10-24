@@ -48,9 +48,16 @@ public class BlockRegistry {
         for (Field field : fields) {
             if (!field.isAnnotationPresent(Property.class)) continue;
             Class<?> datatype = field.getType();
+            if (datatype.isInterface())
+                throw new IllegalDataTypeException("Unsupported Class, the class \"" + datatype.getSimpleName() + "\" is a interface. Not Supported (for now).");
             Primitive primitive = typeMap.get(datatype);
 
-            if (primitive == null) throw new IllegalDataTypeException("Unsupported Datatype, found \""+datatype.getSimpleName()+"\"");
+            boolean serializable = false;
+            if (primitive == null) {
+                serializable = isSerializable(datatype);
+            }
+            if (primitive == null && !serializable)
+                throw new IllegalDataTypeException("Unsupported Datatype, found \"" + datatype.getSimpleName() + "\"");
 
             schematic.add(field.getName(), primitive);
         }
@@ -61,12 +68,23 @@ public class BlockRegistry {
         return id;
     }
 
+    public static boolean isSerializable(Class<?> datatype) {
+        boolean serializable = false;
+        for (Class<?> i : datatype.getInterfaces()) {
+            if (i == Serializable.class) {
+                serializable = true;
+                break;
+            }
+        }
+        return serializable;
+    }
+
     public DataSchematic getDataSchematicOf(int id) {
         return schematics.getOrDefault(id, null);
     }
 
     public BlockType get(int id) {
-        if (idToBlock.get(id) == null) throw new UnknownRegistryException("Couldn't find a registry with id: "+id);
+        if (idToBlock.get(id) == null) throw new UnknownRegistryException("Couldn't find a registry with id: " + id);
         return idToBlock.get(id);
     }
 
@@ -86,7 +104,7 @@ public class BlockRegistry {
         }
 
         public void add(String id, Primitive primitive) {
-            dataOrder.put(id,primitive);
+            dataOrder.put(id, primitive);
         }
 
         public Primitive get(String id) {
@@ -101,7 +119,8 @@ public class BlockRegistry {
         BYTE,
         DOUBLE,
         FLOAT,
-        NULL;
+        NULL,
+        OTHER;
 
         public static Class<?> toClass(Primitive primitive) {
             switch (primitive) {
@@ -159,5 +178,14 @@ public class BlockRegistry {
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
-    public @interface Property {}
+    public @interface Property {
+    }
+
+    public interface Serializable {
+        int size();
+
+        byte[] serialize();
+
+        Object read(byte[] data);
+    }
 }

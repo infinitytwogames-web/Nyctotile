@@ -90,12 +90,14 @@ public class Chunk {
     }
 
     public void setData(int x, int y, int z, byte[] data) throws IllegalChunkAccessException {
-        if (inBounds(x, y, z)) blockData.replace(new Vector3i(x, y, z), data);
-        else throw new IllegalChunkAccessException("Position (" + x + ", " + y + ", " + z + ") is out of bounds");
+        setData(new Vector3i(x,y,z),data);
     }
 
     public void setData(Vector3i pos, byte[] data) throws IllegalChunkAccessException {
-        if (inBounds(pos.x, pos.y, pos.z)) blockData.replace(new Vector3i(pos), data);
+        if (inBounds(pos.x, pos.y, pos.z)) {
+            if (blockData.containsKey(pos)) blockData.replace(pos, data);
+            else blockData.put(pos,data);
+        }
         else
             throw new IllegalChunkAccessException("Position (" + pos.x + ", " + pos.y + ", " + pos.z + ") is out of bounds");
     }

@@ -153,7 +153,7 @@ public abstract class UI {
     }
 
     public void addOffset(Vector2i v) {
-        offset.add(v);
+        addOffset(v.x, v.y);
     }
 
     public void setSize(Vector2i size) {
@@ -180,5 +180,13 @@ public abstract class UI {
         setBackgroundColor(ui.getBackgroundColor());
         setPosition(ui.getAnchor(),ui.getPivot(),ui.getOffset());
         setParent(ui.getParent());
+    }
+
+    public void addOffset(int x, int y) {
+        offset.add(x,y);
+    }
+
+    public void addOffset(int same) {
+        addOffset(same,same);
     }
 }

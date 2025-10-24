@@ -85,4 +85,8 @@ public class Model implements AutoCloseable {
     public void close() {
         cleanup();
     }
+
+    public NFloatBuffer getVerticesBuffer() {
+        return vertices;
+    }
 }

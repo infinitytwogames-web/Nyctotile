@@ -66,6 +66,10 @@ public class GridMap {
         return convertToWorldPosition(chunk,new Vector3i(x,y,z));
     }
 
+    public static Vector2i worldToChunk(Vector3i pos) {
+        return worldToChunk(pos.x, pos.z);
+    }
+
     public Block getBlock(int x, int y, int z) {
         Vector2i p = convertToChunkPosition(x,z);
         ChunkPos pos = new ChunkPos(p.x, p.y);
@@ -214,7 +218,7 @@ public class GridMap {
         } else throw new IllegalChunkAccessException("Cannot modify a non-existing chunk. "+p);
     }
 
-    private Vector3i convertToLocalChunk(Vector3i blockPos) {
+    public static Vector3i convertToLocalChunk(Vector3i blockPos) {
         return convertToLocalChunk(blockPos.x, blockPos.y, blockPos.z);
     }
 

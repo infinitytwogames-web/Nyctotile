@@ -3,6 +3,7 @@ package org.infinitytwo.umbralore.core.ui.builtin;
 import org.infinitytwo.umbralore.core.RGBA;
 import org.infinitytwo.umbralore.core.Window;
 import org.infinitytwo.umbralore.core.data.Inventory;
+import org.infinitytwo.umbralore.core.data.Item;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.input.MouseScrollEvent;
@@ -19,11 +20,13 @@ public class Hotbar extends InventoryViewer {
     private RGBA original;
 
     public Hotbar(Screen renderer, FontRenderer fontRenderer, Window window, int slots) {
-        super(renderer, fontRenderer, window, slots);
+        super(renderer, fontRenderer, window, new ItemFactory(), slots);
 
         EventBus.register(this);
         rows = 1;
         columns = slots;
+        padding = 5;
+        space = 10;
     }
 
     @Override
@@ -44,10 +47,7 @@ public class Hotbar extends InventoryViewer {
         int startIndex = row * columns;
         int endIndex = Math.min(startIndex + columns, link.getMaxSlots());
         for (int i = startIndex; i < endIndex; i++) {
-            ItemSlot slot = new ItemSlot(screen, fontRenderer, window);
-            slot.setAtlas(ItemRegistry.getTextureAtlas());
-            slot.setTextureIndex(0);
-            slot.setItem(link.get(i));
+            ItemSlot slot = getItemSlot(i);
             put(slot, 0, i);
             slots.add(slot);
         }
@@ -79,6 +79,19 @@ public class Hotbar extends InventoryViewer {
         } else {
             if (link == null || e.slot >= slots.size()) return;
             slots.get(e.slot).setItem(link.get(e.slot));
+        }
+    }
+
+    private static class ItemFactory implements Factory {
+
+        @Override
+        public ItemSlot create(int slot, Item item, Screen screen, FontRenderer fontRenderer, Window window) {
+            ItemSlot i = new ItemSlot(screen,fontRenderer,window);
+
+            i.setAtlas(ItemRegistry.getTextureAtlas());
+            i.setBackgroundColor(0,0,0.25f,0.5f);
+
+            return i;
         }
     }
 }

@@ -1,5 +1,6 @@
 package org.infinitytwo.umbralore.core.model.builder;
 
+import org.infinitytwo.umbralore.core.data.AABB;
 import org.infinitytwo.umbralore.core.data.buffer.NFloatBuffer;
 
 import java.nio.FloatBuffer;
@@ -15,6 +16,15 @@ public final class ModelBuilder {
         this.maxX = maxX;
         this.maxY = maxY;
         this.maxZ = maxZ;
+    }
+
+    public ModelBuilder(AABB aabb) {
+        minX = aabb.minX;
+        minY = aabb.minY;
+        minZ = aabb.minZ;
+        maxX = aabb.maxX;
+        maxY = aabb.maxY;
+        maxZ = aabb.maxZ;
     }
 
     public void addFace(Face face, float[] uv, NFloatBuffer buffer) {

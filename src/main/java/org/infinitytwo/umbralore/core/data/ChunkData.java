@@ -84,6 +84,7 @@ public class ChunkData {
         }
 
         chunk.blocks = buffer.array();
+        buffer.cleanup();
 
         return chunk;
     }

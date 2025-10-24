@@ -17,11 +17,11 @@ import org.infinitytwo.umbralore.core.ui.component.ItemHolder;
 import static org.lwjgl.glfw.GLFW.GLFW_PRESS;
 
 public class ItemSlot extends UI {
-    public final ItemHolder item;
+    protected final ItemHolder item;
 
     public ItemSlot(Screen screen, FontRenderer fontRenderer, Window window) {
         super(screen.getUIBatchRenderer());
-        item = new ItemHolder(ResourceManager.items,screen,0,fontRenderer);
+        item = new ItemHolder(ResourceManager.items, screen, 0, fontRenderer);
         screen.register(this);
         item.setParent(this);
     }
@@ -32,14 +32,10 @@ public class ItemSlot extends UI {
 
     public void setItem(Item item) {
         if (item == null) {
-            // --- FIX: CLEAR THE ITEM HOLDER STATE ---
-            this.item.setItem(null);           // Set the item reference to null
-            this.item.setTextureIndex(-1);     // Set a known 'empty' texture index
-            // Optionally, you might draw a background frame here, but we'll
-            // rely on the ItemHolder to not draw the item texture for now.
+            this.item.setItem(null);
+            this.item.setTextureIndex(-1);
         } else {
             this.item.setItem(item);
-            // Ensure this returns a non-negative index for a valid texture
             int textureIndex = ItemRegistry.getMainRegistry().getTextureIndex(item.getType().getIndex());
             this.item.setTextureIndex(textureIndex);
         }
@@ -75,7 +71,7 @@ public class ItemSlot extends UI {
 
     @Override
     public void draw() {
-        item.setSize(width,height);
+        item.setSize(width, height);
         item.setAnchor(0, 0);
         item.setOffset(0, 0);
         item.setPivot(0, 0);
@@ -87,12 +83,12 @@ public class ItemSlot extends UI {
     public void onMouseClicked(MouseButtonEvent e) {
         if (e.action == GLFW_PRESS) {
             if (Mouse.getItem() != null && getItem() != null &&
-                getItem().getType() == Mouse.getItem().getType()) {
+                    getItem().getType() == Mouse.getItem().getType()) {
                 item.setCount(item.getCount() + Mouse.getItem().getCount());
                 Mouse.setItem(null);
             } else {
                 Item i = getItem();
-                Mouse.renderUsing(getAtlas(),getTextureIndex());
+                Mouse.renderUsing(getAtlas(), getTextureIndex());
                 setItem(Mouse.getItem());
                 Mouse.setItem(i);
             }
