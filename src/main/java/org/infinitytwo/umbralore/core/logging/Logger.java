@@ -16,27 +16,27 @@ import java.time.format.DateTimeFormatterBuilder;
 
 public class Logger {
     private final String name;
-    private final FileOutputStream stream;
+//    private final FileOutputStream stream;
 
     public Logger(String processName) {
         this.name = processName;
         String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
 
-        File file = Path.of("logs",LocalDateTime.now().format(DateTimeFormatter.ofPattern(pattern))).toFile();
-        try {
-            stream = new FileOutputStream(file, true);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//        File file = Path.of("logs",LocalDateTime.now().format(DateTimeFormatter.ofPattern(pattern))).toFile();
+//        try {
+//            stream = new FileOutputStream(file, true);
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     private void log(String message) {
         System.out.println(message);
-        try {
-            stream.write((message+"\n").getBytes(StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            stream.write((message+"\n").getBytes(StandardCharsets.UTF_8));
+//        } catch (IOException e) {
+//            throw new RuntimeException(e);
+//        }
     }
 
     public void info(String... messages) {

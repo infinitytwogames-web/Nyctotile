@@ -243,12 +243,10 @@ public class Main {
     private static void construction() {
         atlas = new TextureAtlas(2, 4);
 
-        registry = new BlockRegistry();
+        registry = BlockRegistry.getMainBlockRegistry();
         textRenderer = new FontRenderer("src/main/resources/font.ttf", 16);
 
         renderer = new UIBatchRenderer();
-
-
 
         try {
             registry.register(new GrassBlockType(atlas.addTexture("src/main/resources/grass_side.png", true)));
@@ -327,7 +325,7 @@ public class Main {
 
         map = new GridMap(registry);
 
-        player = new Player(PlayerData.shell(""), map, camera, window);
+        player = new Player(PlayerData.shell(""), overworld, camera, window);
         player.setPosition(0, 150, 0);
         player.adjust();
         player.getInventory().set(0, Item.of(i));

@@ -8,6 +8,7 @@ import org.infinitytwo.umbralore.core.model.Model;
 import org.infinitytwo.umbralore.core.model.builder.ModelBuilder;
 import org.infinitytwo.umbralore.core.registry.ModelRegistry;
 import org.infinitytwo.umbralore.core.world.GridMap;
+import org.infinitytwo.umbralore.core.world.dimension.Dimension;
 
 public class ItemEntity extends Entity {
     private static final int index;
@@ -24,7 +25,7 @@ public class ItemEntity extends Entity {
         buffer.cleanup();
     }
 
-    protected ItemEntity(GridMap map, Window window) {
+    protected ItemEntity(Dimension map, Window window) {
         super("item", map, window, new Inventory(1));
 
         setModelIndex(index);

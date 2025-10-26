@@ -9,6 +9,7 @@ import org.infinitytwo.umbralore.core.renderer.Camera;
 import org.infinitytwo.umbralore.core.renderer.Outline;
 import org.infinitytwo.umbralore.core.renderer.ShaderProgram;
 import org.infinitytwo.umbralore.core.world.GridMap;
+import org.infinitytwo.umbralore.core.world.dimension.Dimension;
 import org.joml.Vector3f;
 import org.lwjgl.glfw.GLFW;
 
@@ -38,7 +39,7 @@ public class Player extends Entity {
                     """
     ));
 
-    public Player(PlayerData data, GridMap map, Camera camera, Window window) {
+    public Player(PlayerData data, Dimension map, Camera camera, Window window) {
         super("player", map, window, new Inventory(36));
         this.data = data;
         this.camera = camera;
@@ -47,7 +48,7 @@ public class Player extends Entity {
         camera.setPosition(position.x, position.y, position.z);
     }
 
-    public Player(GridMap map, Window window, Camera camera) {
+    public Player(Dimension map, Window window, Camera camera) {
         super("player", map, window, new Inventory(36));
         this.camera = camera;
 
@@ -89,7 +90,7 @@ public class Player extends Entity {
 
     public void adjust() {
         for (int y = 0; y < 128; y++) {
-            if (dimension.getBlock((int) position.x, y, (int) position.z) == null) {
+            if (dimension.getWorld().getBlock((int) position.x, y, (int) position.z) == null) {
                 position.y = y+1;
                 break;
             }

@@ -10,7 +10,6 @@ import org.infinitytwo.umbralore.core.logging.Logger;
 import org.infinitytwo.umbralore.core.manager.Mouse;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 import org.infinitytwo.umbralore.core.registry.ItemRegistry;
-import org.infinitytwo.umbralore.core.registry.ResourceManager;
 import org.infinitytwo.umbralore.core.renderer.*;
 import org.infinitytwo.umbralore.core.ui.*;
 import org.infinitytwo.umbralore.core.ui.builtin.InventoryGridViewer;
@@ -158,7 +157,6 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        ResourceManager.items = atlas;
         Inventory inventory = new Inventory(9);
         inventory.set(0, Item.of(type));
         inventory.set(1, Item.of(type));

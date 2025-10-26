@@ -7,6 +7,7 @@ import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
 import org.infinitytwo.umbralore.core.data.io.BlockDataReader;
 import org.infinitytwo.umbralore.core.registry.BlockRegistry;
+import org.infinitytwo.umbralore.core.renderer.Chunk;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -198,6 +199,13 @@ public class ServerGridMap {
     public Collection<ChunkData> getChunks() {
         return Collections.unmodifiableCollection(chunks.values());
     }
+
+//    public static ServerGridMap create(GridMap map) {
+//
+//        for (Chunk chunk : map.getAllChunks()) {
+//            chunk.getBlockData()
+//        }
+//    }
 
     public record RaycastResult(Vector3i blockPos, Vector3i hitNormal){}
     public record ChunkPos(int x, int z) { }
