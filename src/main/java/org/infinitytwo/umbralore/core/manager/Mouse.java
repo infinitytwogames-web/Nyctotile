@@ -1,5 +1,8 @@
-package org.infinitytwo.umbralore.core;
+package org.infinitytwo.umbralore.core.manager;
 
+import org.infinitytwo.umbralore.core.Display;
+import org.infinitytwo.umbralore.core.RGBA;
+import org.infinitytwo.umbralore.core.Window;
 import org.infinitytwo.umbralore.core.data.Item;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 import org.infinitytwo.umbralore.core.renderer.FontRenderer;

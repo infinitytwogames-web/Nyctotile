@@ -22,7 +22,7 @@ public class ModelImporter {
             throw new IOException("Failed to load model: \"" + path + "\" Error: " + aiGetErrorString());
 
         AIMesh mesh = AIMesh.create(scene.mMeshes().get(0));
-        Model model = new Model();
+        Model model = new Model(file.getName());
 
         AIVector3D.Buffer vertices = mesh.mVertices();
         AIVector3D.Buffer texCoords = mesh.mTextureCoords(0);

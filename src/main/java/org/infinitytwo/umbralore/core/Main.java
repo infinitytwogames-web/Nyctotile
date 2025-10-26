@@ -7,6 +7,7 @@ import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.state.WindowResizedEvent;
 import org.infinitytwo.umbralore.core.data.Item;
 import org.infinitytwo.umbralore.core.logging.Logger;
+import org.infinitytwo.umbralore.core.manager.Mouse;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 import org.infinitytwo.umbralore.core.registry.ItemRegistry;
 import org.infinitytwo.umbralore.core.registry.ResourceManager;

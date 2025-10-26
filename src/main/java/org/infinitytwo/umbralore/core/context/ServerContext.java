@@ -1,6 +1,6 @@
 package org.infinitytwo.umbralore.core.context;
 
-import org.infinitytwo.umbralore.core.Players;
+import org.infinitytwo.umbralore.core.manager.Players;
 import org.infinitytwo.umbralore.core.constants.LogicalSide;
 import org.infinitytwo.umbralore.core.constants.PhysicalSide;
 import org.infinitytwo.umbralore.core.world.ServerGridMap;

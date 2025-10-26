@@ -1,4 +1,4 @@
-package org.infinitytwo.umbralore.core.io;
+package org.infinitytwo.umbralore.core.data.io;
 
 import java.io.IOException;
 import java.io.InputStream;

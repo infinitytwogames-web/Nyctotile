@@ -4,12 +4,13 @@ import org.infinitytwo.umbralore.core.data.AABB;
 import org.infinitytwo.umbralore.core.data.buffer.NFloatBuffer;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 import org.infinitytwo.umbralore.core.registry.BlockRegistry;
+import org.infinitytwo.umbralore.core.registry.Registerable;
 import org.infinitytwo.umbralore.core.world.GridMap;
 import org.joml.Vector3i;
 
 import java.util.List;
 
-public abstract class BlockType {
+public abstract class BlockType implements Registerable {
     public int textureIndex;
     protected AABB[] hitboxes = {new AABB(0, 0, 0, 1, 1, 1)};
     public List<Float> vertex;

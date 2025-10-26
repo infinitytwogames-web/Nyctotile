@@ -1,6 +1,6 @@
 package org.infinitytwo.umbralore.core.world;
 
-import org.infinitytwo.umbralore.core.WorkerThreads;
+import org.infinitytwo.umbralore.core.manager.WorkerThreads;
 import org.infinitytwo.umbralore.core.data.ChunkData;
 import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.umbralore.core.logging.Logger;

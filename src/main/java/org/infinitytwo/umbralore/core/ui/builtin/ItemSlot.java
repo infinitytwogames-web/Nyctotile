@@ -1,6 +1,6 @@
 package org.infinitytwo.umbralore.core.ui.builtin;
 
-import org.infinitytwo.umbralore.core.Mouse;
+import org.infinitytwo.umbralore.core.manager.Mouse;
 import org.infinitytwo.umbralore.core.RGBA;
 import org.infinitytwo.umbralore.core.Window;
 import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;

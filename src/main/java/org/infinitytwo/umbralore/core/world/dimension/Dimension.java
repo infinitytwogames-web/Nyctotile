@@ -3,6 +3,7 @@ package org.infinitytwo.umbralore.core.world.dimension;
 import org.infinitytwo.umbralore.core.context.ClientContext;
 import org.infinitytwo.umbralore.core.context.ServerContext;
 import org.infinitytwo.umbralore.core.data.PlayerData;
+import org.infinitytwo.umbralore.core.registry.Registerable;
 import org.infinitytwo.umbralore.core.world.ServerGridMap;
 import org.infinitytwo.umbralore.core.world.ServerProcedureGridMap;
 import org.infinitytwo.umbralore.core.world.generation.Biome;
@@ -11,7 +12,7 @@ import org.infinitytwo.umbralore.core.world.generation.NoiseGenerationSettings;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class Dimension {
+public abstract class Dimension implements Registerable {
     protected final NoiseGenerationSettings settings;
     protected final String name;
     protected final String id;

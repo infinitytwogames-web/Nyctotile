@@ -1,8 +1,8 @@
 package org.infinitytwo.umbralore.core.renderer;
 
-import org.infinitytwo.umbralore.core.ChunkManager;
+import org.infinitytwo.umbralore.core.manager.ChunkManager;
 import org.infinitytwo.umbralore.core.Window;
-import org.infinitytwo.umbralore.core.WorkerThreads;
+import org.infinitytwo.umbralore.core.manager.WorkerThreads;
 import org.infinitytwo.umbralore.block.BlockType;
 import org.infinitytwo.umbralore.core.data.ChunkData;
 import org.infinitytwo.umbralore.core.data.buffer.NFloatBuffer;

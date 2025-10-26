@@ -1,8 +1,9 @@
-package org.infinitytwo.umbralore.core.registry;
+package org.infinitytwo.umbralore.core.data.io;
 
 import org.infinitytwo.umbralore.block.BlockType;
 import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
 import org.infinitytwo.umbralore.core.logging.Logger;
+import org.infinitytwo.umbralore.core.registry.BlockRegistry;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;

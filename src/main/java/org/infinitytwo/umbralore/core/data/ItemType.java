@@ -2,8 +2,9 @@ package org.infinitytwo.umbralore.core.data;
 
 import org.infinitytwo.umbralore.core.constants.Material;
 import org.infinitytwo.umbralore.core.recipe.Recipe;
+import org.infinitytwo.umbralore.core.registry.Registerable;
 
-public class ItemType {
+public class ItemType implements Registerable {
     private final Item.ItemBehaviour itemBehaviour;
     private final boolean isEatable, isDrinkable, fireResistant;
     private final float nutrients, saturation;
@@ -11,9 +12,10 @@ public class ItemType {
     private final int maxDurability;
     private final Material material;
     private final String name;
+    private final String id;
     private transient int index;
 
-    private ItemType(Item.ItemBehaviour itemBehaviour, boolean isEatable, boolean isDrinkable,
+    private ItemType(String id, Item.ItemBehaviour itemBehaviour, boolean isEatable, boolean isDrinkable,
                     boolean fireResistant, float nutrients, float saturation,
                     Recipe recipe, int maxDurability, Material material, String name) {
         this.itemBehaviour = itemBehaviour;
@@ -26,6 +28,7 @@ public class ItemType {
         this.maxDurability = maxDurability;
         this.material = material;
         this.name = name;
+        this.id = id;
     }
 
     public int getIndex() {
@@ -40,6 +43,11 @@ public class ItemType {
         return name;
     }
 
+    @Override
+    public String getId() {
+        return "";
+    }
+
     public static final class Builder {
         private Item.ItemBehaviour itemBehaviour;
         private boolean isEatable, isDrinkable, fireResistant;
@@ -48,6 +56,7 @@ public class ItemType {
         private int maxDurability;
         private Material material;
         private String name;
+        private String id;
 
         public Builder type(Item.ItemBehaviour itemBehaviour) { this.itemBehaviour = itemBehaviour; return this; }
         public Builder isEatable(boolean eatable) { this.isEatable = eatable; return this; }
@@ -59,9 +68,10 @@ public class ItemType {
         public Builder material(Material material) { this.material = material; return this; }
         public Builder recipe(Recipe recipe) { this.recipe = recipe; return this; }
         public Builder name(String name) { this.name = name; return this; }
+        public Builder id(String name) { this.id = name; return this; }
 
         public ItemType build() {
-            return new ItemType(itemBehaviour, isEatable, isDrinkable, fireResistant,
+            return new ItemType(id, itemBehaviour, isEatable, isDrinkable, fireResistant,
                     nutrients, saturation, recipe,
                     maxDurability, material, name);
         }

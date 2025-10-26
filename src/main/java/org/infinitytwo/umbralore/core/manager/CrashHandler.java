@@ -1,4 +1,4 @@
-package org.infinitytwo.umbralore.core;
+package org.infinitytwo.umbralore.core.manager;
 
 import java.io.*;
 import java.text.SimpleDateFormat;

@@ -1,6 +1,9 @@
 package org.infinitytwo.umbralore.core;
 
 import org.joml.Vector2i;
+import org.joml.Vector3f;
+
+import java.nio.ByteBuffer;
 
 public final class VectorMath {
     public static boolean isPointWithinRectangle(Vector2i topLeft, Vector2i point, Vector2i bottomRight) {
@@ -23,5 +26,15 @@ public final class VectorMath {
 
         return (float) pointX >= minX && (float) pointX <= maxX &&
                 (float) pointY >= minY && (float) pointY <= maxY;
+    }
+
+    public static String toStringAsId(Vector2i v) {
+        return v.x+"-"+v.y;
+    }
+
+    public static byte[] serialize(Vector3f v) {
+        ByteBuffer buffer = ByteBuffer.allocate(3 * Float.BYTES);
+        buffer.putFloat(v.x); buffer.putFloat(v.y); buffer.putFloat(v.z);
+        return buffer.array();
     }
 }

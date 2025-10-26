@@ -89,7 +89,7 @@ public class Player extends Entity {
 
     public void adjust() {
         for (int y = 0; y < 128; y++) {
-            if (world.getBlock((int) position.x, y, (int) position.z) == null) {
+            if (dimension.getBlock((int) position.x, y, (int) position.z) == null) {
                 position.y = y+1;
                 break;
             }

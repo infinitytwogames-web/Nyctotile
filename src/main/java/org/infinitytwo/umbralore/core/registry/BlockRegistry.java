@@ -2,18 +2,18 @@ package org.infinitytwo.umbralore.core.registry;
 
 import org.infinitytwo.umbralore.block.BlockType;
 import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
-import org.infinitytwo.umbralore.core.exception.UnknownRegistryException;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BlockRegistry {
+public class BlockRegistry extends Registry<BlockType> {
     private final Map<Integer, BlockType> idToBlock = new ConcurrentHashMap<>();
     private final Map<String, Integer> nameToId = new ConcurrentHashMap<>();
     private final Map<Integer, DataSchematic> schematics = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Primitive> typeMap = new HashMap<>();
+    private static final BlockRegistry registry = new BlockRegistry();
 
     static {
         typeMap.put(int.class, Primitive.INT);
@@ -30,13 +30,8 @@ public class BlockRegistry {
         typeMap.put(Float.class, Primitive.FLOAT);
     }
 
-    private short nextId = 1;
-
-    public int register(BlockType block) {
-        int id = nextId++;
-        idToBlock.put(id, block);
-        nameToId.put(block.getId(), id);
-        return id;
+    public static BlockRegistry getMainBlockRegistry() {
+        return registry;
     }
 
     public int registerDynamicBlock(BlockType block) throws IllegalDataTypeException {
@@ -81,19 +76,6 @@ public class BlockRegistry {
 
     public DataSchematic getDataSchematicOf(int id) {
         return schematics.getOrDefault(id, null);
-    }
-
-    public BlockType get(int id) {
-        if (idToBlock.get(id) == null) throw new UnknownRegistryException("Couldn't find a registry with id: " + id);
-        return idToBlock.get(id);
-    }
-
-    public int getId(String name) {
-        return nameToId.get(name);
-    }
-
-    public Set<Integer> getIds() {
-        return idToBlock.keySet();
     }
 
     public static class DataSchematic {

@@ -13,7 +13,7 @@ public class ItemEntity extends Entity {
     private static final int index;
 
     static {
-        Model model = new Model();
+        Model model = new Model("item");
         NFloatBuffer buffer = new NFloatBuffer();
         ModelBuilder b = new ModelBuilder(0,0,0,0.5f,0.5f,0.5f);
         b.cube(buffer,new float[]{0,0,1,1});

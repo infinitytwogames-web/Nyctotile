@@ -1,4 +1,4 @@
-package org.infinitytwo.umbralore.core;
+package org.infinitytwo.umbralore.core.manager;
 
 import org.infinitytwo.umbralore.core.exception.UnknownRegistryException;
 import org.infinitytwo.umbralore.core.ui.display.Screen;

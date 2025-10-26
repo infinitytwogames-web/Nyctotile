@@ -6,7 +6,7 @@ import org.infinitytwo.umbralore.core.event.input.KeyPressEvent;
 import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.core.event.input.MouseScrollEvent;
 import org.infinitytwo.umbralore.core.event.state.WindowResizedEvent;
-import org.infinitytwo.umbralore.core.io.ResourceLoader;
+import org.infinitytwo.umbralore.core.data.io.ResourceLoader;
 import org.infinitytwo.umbralore.core.logging.Logger;
 import org.joml.Vector2f;
 import org.joml.Vector2i;

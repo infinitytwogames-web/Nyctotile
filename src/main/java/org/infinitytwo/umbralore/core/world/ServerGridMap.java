@@ -5,13 +5,15 @@ import org.infinitytwo.umbralore.block.BlockType;
 import org.infinitytwo.umbralore.core.data.ChunkData;
 import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
-import org.infinitytwo.umbralore.core.registry.BlockDataReader;
+import org.infinitytwo.umbralore.core.data.io.BlockDataReader;
 import org.infinitytwo.umbralore.core.registry.BlockRegistry;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -191,6 +193,10 @@ public class ServerGridMap {
         ChunkData data = chunks.get(new ChunkPos(pos.x, pos.y));
         if (data == null) throw new IllegalChunkAccessException("Cannot access a non-existing chunk at (" + pos.x +", "+pos.y+")");
         return data;
+    }
+
+    public Collection<ChunkData> getChunks() {
+        return Collections.unmodifiableCollection(chunks.values());
     }
 
     public record RaycastResult(Vector3i blockPos, Vector3i hitNormal){}

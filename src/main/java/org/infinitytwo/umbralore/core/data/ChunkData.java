@@ -19,12 +19,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ChunkData {
-    public static final int SIZE_X = 16;
+    public static final int SIZE = 16;
     public static final int SIZE_Y = 128;
-    public static final int SIZE_Z = 16;
+    public static final int SIZE_X = SIZE;
+    public static final int SIZE_Z = SIZE;
     private transient GridMap map;
     public Vector2i position;
-    private int[] blocks = new int[SIZE_X * SIZE_Y * SIZE_Z];
+    private int[] blocks = new int[SIZE * SIZE_Y * SIZE];
     private final Map<Vector3i, byte[]> blockData = new HashMap<>();
 
     public ChunkData(Vector2i position, GridMap map) {
@@ -91,9 +92,9 @@ public class ChunkData {
 
     public Chunk createChunk(ShaderProgram program, TextureAtlas atlas, BlockRegistry registry) {
         Chunk chunk = new Chunk(position, program, atlas, map, registry);
-        for (int x = 0; x < SIZE_X; x++) {
+        for (int x = 0; x < SIZE; x++) {
             for (int y = 0; y < SIZE_Y; y++) {
-                for (int z = 0; z < SIZE_Z; z++) {
+                for (int z = 0; z < SIZE; z++) {
                     int id = blocks[getIndex(x, y, z)];
                     if (id != 0) { // assuming 0 = air or empty
                         try {
@@ -119,11 +120,11 @@ public class ChunkData {
     }
 
     private int getIndex(int x, int y, int z) {
-        return (x * SIZE_Y * SIZE_Z) + (y * SIZE_Z) + z;
+        return (x * SIZE_Y * SIZE) + (y * SIZE) + z;
     }
 
     private boolean isInBounds(int x, int y, int z) {
-        return x >= 0 && x < SIZE_X && y >= 0 && y < SIZE_Y && z >= 0 && z < SIZE_Z;
+        return x >= 0 && x < SIZE && y >= 0 && y < SIZE_Y && z >= 0 && z < SIZE;
     }
 
     public int getBlockId(int x, int y, int z) {

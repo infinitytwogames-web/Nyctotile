@@ -1,12 +1,18 @@
 package org.infinitytwo.umbralore.core.model;
 
 import org.infinitytwo.umbralore.core.data.buffer.NFloatBuffer;
+import org.infinitytwo.umbralore.core.registry.Registerable;
 import org.joml.Vector3i;
 
 import java.nio.FloatBuffer;
 
-public class Model implements AutoCloseable {
+public class Model implements AutoCloseable, Registerable {
     protected NFloatBuffer vertices = new NFloatBuffer(), normals = new NFloatBuffer();
+    private final String id;
+
+    public Model(String id) {
+        this.id = id;
+    }
 
     public void vertex(float x, float y, float z) {
         vertices.put(x);
@@ -88,5 +94,10 @@ public class Model implements AutoCloseable {
 
     public NFloatBuffer getVerticesBuffer() {
         return vertices;
+    }
+
+    @Override
+    public String getId() {
+        return "";
     }
 }

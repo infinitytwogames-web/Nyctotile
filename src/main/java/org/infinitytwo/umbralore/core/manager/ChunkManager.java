@@ -1,4 +1,4 @@
-package org.infinitytwo.umbralore.core;
+package org.infinitytwo.umbralore.core.manager;
 
 import java.util.Collection;
 import java.util.List;

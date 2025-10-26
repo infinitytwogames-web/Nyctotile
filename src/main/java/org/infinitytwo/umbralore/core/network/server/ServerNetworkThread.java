@@ -1,6 +1,6 @@
 package org.infinitytwo.umbralore.core.network.server;
 
-import org.infinitytwo.umbralore.core.Players;
+import org.infinitytwo.umbralore.core.manager.Players;
 import org.infinitytwo.umbralore.core.constants.LogicalSide;
 import org.infinitytwo.umbralore.core.data.PlayerData;
 import org.infinitytwo.umbralore.core.event.bus.LocalEventBus;

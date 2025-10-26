@@ -4,7 +4,9 @@ import org.infinitytwo.umbralore.core.data.ItemType;
 import org.infinitytwo.umbralore.core.exception.UnknownRegistryException;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ItemRegistry {
@@ -54,5 +56,9 @@ public class ItemRegistry {
 
     public int size() {
         return idToItem.size();
+    }
+
+    public Set<Map.Entry<Integer,ItemType>> getEntries() {
+        return Collections.unmodifiableSet(idToItem.entrySet());
     }
 }

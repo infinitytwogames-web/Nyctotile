@@ -6,6 +6,7 @@ import org.infinitytwo.umbralore.core.constants.Constants;
 import org.infinitytwo.umbralore.core.constants.Material;
 import org.infinitytwo.umbralore.core.data.*;
 import org.infinitytwo.umbralore.core.data.buffer.NFloatBuffer;
+import org.infinitytwo.umbralore.core.data.io.BlockDataReader;
 import org.infinitytwo.umbralore.core.entity.Entity;
 import org.infinitytwo.umbralore.core.entity.Player;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
@@ -17,6 +18,9 @@ import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.umbralore.core.data.Item;
 import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
 import org.infinitytwo.umbralore.core.logging.Logger;
+import org.infinitytwo.umbralore.core.manager.CrashHandler;
+import org.infinitytwo.umbralore.core.manager.Mouse;
+import org.infinitytwo.umbralore.core.manager.WorkerThreads;
 import org.infinitytwo.umbralore.core.model.Model;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 import org.infinitytwo.umbralore.core.model.builder.CubeModelBuilder;
@@ -305,7 +309,7 @@ public class Main {
             throw new RuntimeException(e);
         }
 
-        ItemType i = new ItemType.Builder()
+        org.infinitytwo.umbralore.core.data.ItemType i = new org.infinitytwo.umbralore.core.data.ItemType.Builder()
                 .material(Material.GRASS)
                 .type(Item.ItemBehaviour.ITEM)
                 .name("")
@@ -361,12 +365,12 @@ public class Main {
         Mouse.init(itemAtlas, mainScreen, -1, textRenderer, window);
 
         // MODEL RENDERING TEST
-        Model model = new Model();
+        Model model = new Model("test");
         AABB box = new AABB(0, 0, 0, 1, 1, 1);
         new ModelBuilder(box).cube(model.getVerticesBuffer(), new float[]{0, 0, 1, 1});
         int index = ModelRegistry.register(model);
 
-        entity = new Entity("item", window, map, new Inventory(0), box) {
+        entity = new Entity("item", window, overworld, new Inventory(0), box) {
         };
         entity.setModelIndex(index);
 
@@ -421,9 +425,6 @@ public class Main {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-
-        ResourceManager.blocks = atlas;
-        ResourceManager.items = itemAtlas;
     }
 
 
@@ -491,8 +492,8 @@ public class Main {
     }
 
     private static void update() {
-        int chunkX = (int) Math.floor(camera.getPosition().x / ChunkData.SIZE_X);
-        int chunkZ = (int) Math.floor(camera.getPosition().z / ChunkData.SIZE_Z);
+        int chunkX = (int) Math.floor(camera.getPosition().x / ChunkData.SIZE);
+        int chunkZ = (int) Math.floor(camera.getPosition().z / ChunkData.SIZE);
 
         List<GridMap.ChunkPos> chunks = map.getMissingSurroundingChunks(
                 new GridMap.ChunkPos(chunkX, chunkZ), 5

@@ -5,20 +5,24 @@ import org.infinitytwo.umbralore.core.data.Block;
 import org.infinitytwo.umbralore.core.data.AABB;
 import org.infinitytwo.umbralore.core.data.Inventory;
 import org.infinitytwo.umbralore.core.data.Item;
-import org.infinitytwo.umbralore.core.world.GridMap;
+import org.infinitytwo.umbralore.core.registry.Registerable;
+import org.infinitytwo.umbralore.core.world.dimension.Dimension;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
+import java.util.UUID;
+
 import static org.joml.Math.lerp;
 
-public abstract class Entity {
+public abstract class Entity implements Registerable {
     protected final String id;
+    protected final UUID uuid;
     protected final Window window;
     protected AABB hitbox = new AABB(0,0,0,0,0,0); // Local-space AABB size
     protected Vector3f velocity = new Vector3f();
     protected Vector3f position = new Vector3f();
     protected float gravity = -22.7f;
-    protected GridMap world;
+    protected Dimension dimension;
     protected Inventory inventory;
     private boolean isGrounded = false;
     protected int modelIndex;
@@ -26,21 +30,40 @@ public abstract class Entity {
     protected float jumpStrength = 7.2f;
     private Vector3f scale = new Vector3f(1,1,1);
     private Vector3f rotation = new Vector3f();
-    private float airResistance = 7;
+    private static float airResistance = 7;
 
-    protected Entity(String id, GridMap map, Window window, Inventory inventory) {
-        this.id = id;
-        this.world = map;
-        this.window = window;
-        this.inventory = inventory;
+    public static float getAirResistance() {
+        return airResistance;
     }
 
-    public Entity(String id, Window window, GridMap world, Inventory inventory, AABB hitbox) {
+    public static void setAirResistance(float airResistance) {
+        Entity.airResistance = airResistance;
+    }
+
+    protected Entity(String id, Dimension map, Window window, Inventory inventory) {
+        this.id = id;
+        this.dimension = map;
+        this.window = window;
+        this.inventory = inventory;
+        uuid = UUID.randomUUID();
+    }
+
+    public Entity(String id, Window window, Dimension dimension, Inventory inventory, AABB hitbox) {
         this.id = id;
         this.window = window;
-        this.world = world;
+        this.dimension = dimension;
         this.inventory = inventory;
         this.hitbox = hitbox;
+        uuid = UUID.randomUUID();
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    public UUID getUUID() {
+        return uuid;
     }
 
     public Inventory getInventory() {
@@ -103,7 +126,7 @@ public abstract class Entity {
         // Reset grounded state
         isGrounded = false;
 
-        Block block = world.getBlock((int) position.x, (int) (position.y - 1), (int) position.z);
+        Block block = dimension.getWorld().getBlock((int) position.x, (int) (position.y - 1), (int) position.z);
         float friction = block == null? 1 : block.getType().getFriction();
         // Apply gravity
         velocity.y += gravity * deltaTime;
@@ -135,7 +158,7 @@ public abstract class Entity {
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    Block block = world.getBlock(x, y, z);
+                    Block block = dimension.getWorld().getBlock(x, y, z);
                     if (block == null) continue;
 
                     if (block.getType() == null) throw new IllegalStateException("Somehow, the block at "+x+" "+y+" "+z+" has undefined block type");
@@ -230,12 +253,12 @@ public abstract class Entity {
         this.gravity = gravity;
     }
 
-    public GridMap getWorld() {
-        return world;
+    public Dimension getDimension() {
+        return dimension;
     }
 
-    public void setWorld(GridMap world) {
-        this.world = world;
+    public void setDimension(Dimension dimension) {
+        this.dimension = dimension;
     }
 
     public float getMovementSpeed() {
