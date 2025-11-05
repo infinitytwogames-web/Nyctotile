@@ -23,46 +23,52 @@ public class Authentication {
     private static final int AES_KEY_SIZE = 256;
 
     private static final ObjectMapper mapper = new ObjectMapper();
-
+    
     public static FirebaseTokenPayload verify(String idToken) throws Exception {
         SignedJWT jwt = SignedJWT.parse(idToken);
         String kid = jwt.getHeader().getKeyID();
-
+        
         // Load Google's public certs
         Map<String, String> certs = mapper.readValue(new URL(GOOGLE_CERTS_URL), Map.class);
-
+        
         if (!certs.containsKey(kid)) {
             throw new SecurityException("Unknown key ID: " + kid);
         }
-
+        
         // Parse X.509 certificate and extract the public key
         String certPEM = certs.get(kid);
         X509Certificate cert = (X509Certificate) CertificateFactory.getInstance("X.509")
                 .generateCertificate(new java.io.ByteArrayInputStream(certPEM.getBytes()));
         RSAPublicKey publicKey = (RSAPublicKey) cert.getPublicKey();
-
+        
         // Verify signature
         JWSVerifier verifier = new RSASSAVerifier(publicKey);
         if (!jwt.verify(verifier)) {
             throw new SecurityException("Invalid signature.");
         }
-
-        // Validate Firebase-specific claims
+        
+        // --- Extract Claims ---
         String aud = jwt.getJWTClaimsSet().getAudience().get(0);
         String iss = jwt.getJWTClaimsSet().getIssuer();
+        
+        // These are the claims we want:
         String uid = (String) jwt.getJWTClaimsSet().getClaim("user_id");
-
+        String name = (String) jwt.getJWTClaimsSet().getClaim("name"); // Display Name
+        String email = (String) jwt.getJWTClaimsSet().getClaim("email"); // Email is also useful
+        
+        // Validate Firebase-specific claims
         if (!aud.equals(PROJECT_ID)) {
             throw new SecurityException("Invalid audience: " + aud);
         }
         if (!iss.equals("https://securetoken.google.com/" + PROJECT_ID)) {
             throw new SecurityException("Invalid issuer: " + iss);
         }
-
-        return new FirebaseTokenPayload(uid);
+        
+        // Return the extended payload
+        return new FirebaseTokenPayload(uid, name, email);
     }
 
-    public record FirebaseTokenPayload(String uid) { }
+    public record FirebaseTokenPayload(String uid, String name, String email) { }
 
     public static JSONObject loginWithEmail(String email, String password, String apiKey) throws IOException {
         URL url = new URL("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + apiKey);

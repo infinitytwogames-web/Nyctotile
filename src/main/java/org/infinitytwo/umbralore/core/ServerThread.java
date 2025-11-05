@@ -1,6 +1,7 @@
 package org.infinitytwo.umbralore.core;
 
 import org.infinitytwo.umbralore.block.ServerBlockType;
+import org.infinitytwo.umbralore.core.data.ChunkPos;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
 import org.infinitytwo.umbralore.core.event.network.PacketReceived;
@@ -26,7 +27,7 @@ public final class ServerThread extends Thread {
     private ServerNetworkThread networkThread;
 //    private NetworkHandler handler;
 //    private NetworkCommandHandler commandHandler;
-    private final Logger logger = new Logger("Server");
+    private final Logger logger = new Logger(ServerThread.class);
 
     public ServerThread(int seed) {
         eventBus.register(this);
@@ -79,13 +80,13 @@ public final class ServerThread extends Thread {
 
     @SubscribeEvent
     public void messageReceived(PacketReceived e) {
-        logger.info(e.packet,e.address.toString());
+        logger.info(e.address.toString()+e.packet);
     }
 
     private void init() {
         for (int x = -5; x < 5; x++) {
             for (int y = -5; y < 5; y++) {
-                overworld.generate(new ServerGridMap.ChunkPos(x,y));
+                overworld.generate(new ChunkPos(x,y));
             }
         }
 
@@ -127,5 +128,9 @@ public final class ServerThread extends Thread {
 
     public BlockRegistry getBlockRegistry() {
         return registry;
+    }
+    
+    public ServerNetworkThread getNetworkThread() {
+        return networkThread;
     }
 }

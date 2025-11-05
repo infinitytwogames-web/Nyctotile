@@ -3,6 +3,7 @@ package org.infinitytwo.umbralore.core.network;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.network.PacketReceived;
+import org.infinitytwo.umbralore.core.logging.Logger;
 import org.infinitytwo.umbralore.core.network.NetworkThread.Packet;
 
 import java.net.InetAddress;
@@ -10,9 +11,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static org.infinitytwo.umbralore.core.constants.PacketType.*;
 
 public class NetworkHandler extends Thread {
+    private static final Logger logger = new Logger(NetworkHandler.class);
+    private static final ConcurrentLinkedQueue<Packet> QUEUE = new ConcurrentLinkedQueue<>();
+    
+    public void setProcessor(CommandProcessor processor) {
+        this.processor = processor;
+    }
+    
     @FunctionalInterface
     public interface CommandProcessor {
         void process(Packet packets, NetworkThread thread);
@@ -26,12 +36,13 @@ public class NetworkHandler extends Thread {
     
     // --- TIMEOUT CONSTANTS ---
     protected final int TICK_RATE_MS = 50; // The sleep time (e.g., 50ms)
-    protected final float CHECK_INTERVAL_SECONDS = 1.0f; // How often to check timers (1 second)
+    protected final float CHECK_INTERVAL_SECONDS = 2.0f; // How often to check timers (1 second)
     // Ticks per check interval (1000ms / 50ms = 20 ticks)
     protected final int CHECK_INTERVAL_TICKS = (int) (CHECK_INTERVAL_SECONDS * 1000 / TICK_RATE_MS);
     
     // The timeout value in CHECK_INTERVAL_CYCLES (3 seconds / 1 second per cycle = 3 cycles).
     protected final int SENDER_TIMEOUT_CYCLES = 3;
+    protected final int RECEIVER_INITIAL_TIMEOUT_CYCLES = 10;
     protected final int MAX_RESEND_ATTEMPTS = 5; // Maximum times a critical packet will be re-sent
     
     // Map of Packet ID to Time remaining until resend (Sender side)
@@ -43,7 +54,7 @@ public class NetworkHandler extends Thread {
     protected final Map<Integer, Integer> resendAttempts = new ConcurrentHashMap<>();
     
     protected final NetworkThread networkThread;
-    protected final CommandProcessor processor;
+    protected CommandProcessor processor;
     
     public NetworkHandler(EventBus bus, NetworkThread network, CommandProcessor processor) {
         eventBus = bus;
@@ -53,28 +64,39 @@ public class NetworkHandler extends Thread {
         networkThread = network;
         
         setName("Server Network Handler");
+        setDaemon(true);
     }
     
     @SubscribeEvent
     public void onMessageReceived(PacketReceived e) {
-        System.out.println("Received Packet and attached to PacketAssembly: "+e.packet.toString());
-        assembly.addPacket(e.packet.id(), e.packet);
         
+        if (e.packet.type() == ACK.getByte() ||
+                e.packet.type() == NACK.getByte() ||
+                e.packet.type() == FAILURE.getByte()) {
+            
+            logger.info("Received Protocol Packet: {} for ID {}", e.packet.type(), e.packet.id());
+            
+            // Cleanup tracking maps regardless of the specific protocol type
+            if (e.packet.type() == ACK.getByte() || e.packet.type() == FAILURE.getByte()) {
+                receivedPackets.remove(e.packet.id());
+                resendAttempts.remove(e.packet.id());
+                networkThread.removePacketSent(e.packet.id());
+            }
+            
+            // This is the critical change: EXIT immediately.
+            return;
+        }
         // Only start a timer for INCOMING reliable packets (e.g., those needing assembly)
         // If e.packet.total() > 1, it requires assembly and is reliable.
-        if (e.packet.total() > 1 /* || other reliability checks */) {
+        if (e.packet.total() > 1) {
+            logger.info("Received Packet and attached to PacketAssembly: {}",e.packet.toString());
+            QUEUE.add(e.packet);
             
             // Set a timer for the receiver.
-            int receiverTimeoutCycles = 1;
             
             // putIfAbsent ensures we only start the timer once for the first fragment
-            receivedPackets.putIfAbsent(e.packet.id(), receiverTimeoutCycles * CHECK_INTERVAL_TICKS);
-        }
-    }
-    
-    @Deprecated
-    public void registerCommand(NetworkCommand cmd) {
-        // This method should be removed if unused.
+            receivedPackets.putIfAbsent(e.packet.id(), RECEIVER_INITIAL_TIMEOUT_CYCLES * CHECK_INTERVAL_TICKS);
+        } else handle(e.packet);
     }
     
     @Override
@@ -83,6 +105,10 @@ public class NetworkHandler extends Thread {
             long now = System.nanoTime();
             delta = (now - lastFrameTime) / 1_000_000_000.0f; // Convert to seconds
             lastFrameTime = now;
+            Packet packet = QUEUE.poll();
+            if (packet != null) {
+                assembly.addPacket(packet);
+            }
             
             synchronize();
             update();
@@ -189,7 +215,7 @@ public class NetworkHandler extends Thread {
                         networkThread.sendRequest(id, data, address, firstPacket.port());
                         
                         // Reset timer to wait for requested fragments (using the sender timeout for consistency)
-                        entry.setValue(SENDER_TIMEOUT_CYCLES * CHECK_INTERVAL_TICKS);
+                        receivedPackets.put(id, SENDER_TIMEOUT_CYCLES * CHECK_INTERVAL_TICKS);
                         return false; // Do not remove entry; keep monitoring assembly
                     }
                     resendAttempts.remove(id); // Clean up
@@ -210,7 +236,7 @@ public class NetworkHandler extends Thread {
             
             if (address != null && firstPacket != null) {
                 // Send confirmation (ACK) back to the sender
-                networkThread.sendConfirmation(id, address, firstPacket.port());
+                networkThread.sendACK(id, address, firstPacket.port());
                 
                 // Immediately stop tracking and clean up attempts map for this incoming packet
                 receivedPackets.remove(id);
@@ -237,8 +263,15 @@ public class NetworkHandler extends Thread {
         
         // Cleanup map from any packets that have been ACKed since last update()
         packets.entrySet().removeIf(entry -> !sentPackets.containsKey(entry.getKey()));
-        // Note: resendAttempts cleanup is handled either when ACK is received/checked
-        // in update() or when the packet is successfully processed in synchronize().
+        
+        packets.entrySet().removeIf(entry -> {
+            boolean isAcked = !sentPackets.containsKey(entry.getKey());
+            if (isAcked) {
+                // --- IMPROVEMENT: Explicitly clean up sender attempt counter here ---
+                resendAttempts.remove(entry.getKey());
+            }
+            return isAcked;
+        });
     }
     
     public byte[] handle(Packet packets) {

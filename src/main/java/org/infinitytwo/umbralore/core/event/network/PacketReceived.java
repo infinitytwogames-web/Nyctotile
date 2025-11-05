@@ -13,4 +13,9 @@ public class PacketReceived extends Event {
         this.packet = message;
         this.address = address;
     }
+    
+    public PacketReceived(NetworkThread.Packet packet) {
+        address = packet.address();
+        this.packet = packet;
+    }
 }

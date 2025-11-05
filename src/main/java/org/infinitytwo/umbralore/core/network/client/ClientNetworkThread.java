@@ -31,7 +31,10 @@ public final class ClientNetworkThread extends NetworkThread {
         CONNECTED
     }
     
-    // ClientNetworkThread.java (Add to fields)
+    private static final NetworkHandler.CommandProcessor processor = (packets, thread) -> {
+        System.out.println(packets.toString()+" Successfully received!");
+    };
+    
     private volatile ConnectionState state = ConnectionState.DISCONNECTED;
     private final SecureRandom secureRandom = new SecureRandom();
     private PublicKey serverPublicKey;
@@ -40,7 +43,17 @@ public final class ClientNetworkThread extends NetworkThread {
     private InetAddress serverAddress;
     private int serverPort;
     private final NetworkHandler handler;
-    private int initialHandshakePacketId;
+    private int initialHandshakePacketId; // Using my IDE, line 107, is the only one sets it
+    private int aesKeyPacket;
+    
+    public ClientNetworkThread(EventBus eventBus, int port) {
+        super(LogicalSide.CLIENT, eventBus, port);
+        handler = new NetworkHandler(eventBus,this,processor);
+        
+        if (handler.getState() == Thread.State.NEW) {
+            handler.start();
+        }
+    }
     
     public ClientNetworkThread(EventBus eventBus, int port, String host, int serverPort) throws UnknownHostException {
         super(LogicalSide.CLIENT, eventBus, port);
@@ -48,13 +61,37 @@ public final class ClientNetworkThread extends NetworkThread {
         
         serverAddress = InetAddress.getByName(host);
         this.serverPort = serverPort;
-        handler = new NetworkHandler(eventBus,this,((packets, thread) ->
-                System.out.println("Successfully Received All packets of: "+packets.id()+ "With size: "+packets.payload().length+" bytes")
-        )); // Why isn't it printing?
+        handler = new NetworkHandler(eventBus,this,processor);
         
         if (handler.getState() == Thread.State.NEW) {
             handler.start();
         }
+    }
+    
+    public NetworkHandler getNetworkHandler() {
+        return handler;
+    }
+    
+    public InetAddress getServerAddress() {
+        return serverAddress;
+    }
+    
+    public void setServerAddress(String host) throws UnknownHostException {
+        setServerAddress(InetAddress.getByName(host));
+    }
+    
+    public void setServerAddress(InetAddress serverAddress) {
+        if (state == ConnectionState.CONNECTED) return;
+        this.serverAddress = serverAddress;
+    }
+    
+    public int getServerPort() {
+        return serverPort;
+    }
+    
+    public void setServerPort(int serverPort) {
+        if (state == ConnectionState.CONNECTED) return;
+        this.serverPort = serverPort;
     }
     
     public void connect() {
@@ -77,7 +114,9 @@ public final class ClientNetworkThread extends NetworkThread {
         int packetId = ThreadLocalRandom.current().nextInt();
         this.initialHandshakePacketId = packetId; // Store the ID
         
-        send(packetId, payload, serverAddress, serverPort, UNENCRYPTED.getType(), true, false);
+        send(packetId, payload, serverAddress, serverPort, UNENCRYPTED.getByte(), true, false);
+        
+        this.state = ConnectionState.HANDSHAKE_START;
     }
     
     // --- ENCRYPTION LOGIC: Confirmed to match corrected server output (no redundant byte) ---
@@ -85,7 +124,7 @@ public final class ClientNetworkThread extends NetworkThread {
     protected byte[] encrypt(Packet packet) {
         if (aesKey == null) {
             // RSA Encrypt the AES Key bytes during key exchange
-            if (packet.type() == EXCHANGE.getType() && serverPublicKey != null) {
+            if (packet.type() == EXCHANGE.getByte() && serverPublicKey != null) {
                 try {
                     return rsaEncrypt(packet.payload());
                 } catch (GeneralSecurityException e) {
@@ -162,34 +201,28 @@ public final class ClientNetworkThread extends NetworkThread {
     
     @Override
     protected boolean preProcessPacket(Packet packet) {
-        // --- STAGE 0 & 1: HANDSHAKE ---
-        if (aesKey == null) {
-            return handleHandshake(packet);
-        }
-        
-        // --- STAGE 2: AUTHENTICATED/ENCRYPTED TRAFFIC ---
-        
-        if (packet.type() == CONNECTION.getType()) {
+        if (packet.type() == CONNECTION.getByte()) {
             System.out.println("Connection successful! Server sent connection ACK.");
             this.state = ConnectionState.CONNECTED; // Final state
             
             System.out.println("Client is connected. Sending test command...");
-            // Assuming COMMAND is PacketType 1 (based on the log 'Packet: 1/1, 1')
-            send("echo Hello Secure World!", serverAddress, serverPort, COMMAND.getType(), true, true);
             return false;
         }
+        // --- STAGE 0 & 1: HANDSHAKE ---
+        if (state != ConnectionState.CONNECTED) {
+            return handleHandshake(packet);
+        }
         
-        if (state == ConnectionState.CONNECTED) eventBus.post(new PacketReceived(packet,packet.address())); // Turns out, this causes "Traffic from unauthenticated client: 127.0.0.1:5555. Dropping."
+        // --- STAGE 2: AUTHENTICATED/ENCRYPTED TRAFFIC ---
+        eventBus.post(new PacketReceived(packet,packet.address()));
         return true;
     }
     
     private boolean handleHandshake(Packet packet) {
         // Public Key Received
-        if (packet.type() == EXCHANGE.getType() && serverPublicKey == null) {
-            
-            // --- FIX 2: Clear the packet from the reliable queue (Initial Request) ---
-            // Clears the initial request (ID: 1859381700 in this log)
+        if (packet.type() == EXCHANGE.getByte() && serverPublicKey == null) {
             removePacketSent(packet.id());
+            removePacketSent(initialHandshakePacketId);
             
             System.out.println("Received server public key.");
             try {
@@ -203,8 +236,11 @@ public final class ClientNetworkThread extends NetworkThread {
                 
                 int newPacketId = ThreadLocalRandom.current().nextInt();
                 // Send the encrypted AES key back to the server. Must be RELIABLE.
-                send(newPacketId, encryptedKey, serverAddress, serverPort, EXCHANGE.getType(), true, false);
+                send(newPacketId, encryptedKey, serverAddress, serverPort, EXCHANGE.getByte(), true, false);
+                removePacketSent(initialHandshakePacketId);
+                
                 state = ConnectionState.KEY_ESTABLISHED;
+                aesKeyPacket = newPacketId;
                 
                 System.out.println("Sent encrypted AES key to server. Awaiting ACK.");
                 
@@ -212,28 +248,30 @@ public final class ClientNetworkThread extends NetworkThread {
                 System.err.println("Error processing public key or generating/encrypting AES key.");
                 e.printStackTrace();
             }
-            return false;
         }
         
-        // ACK from Server for AES Key Exchange OR Initial Connection
-        else if (packet.type() == ACK.getType() && this.state == ConnectionState.KEY_ESTABLISHED) {
+        if (packet.type() == ACK.getByte()) {
             
-            // --- CRITICAL FIX 4: Explicitly remove the ACKed packet from the client's sent queue. ---
-            // This ensures the reliable packet tracking is immediately updated, regardless of which ACK it is.
+            // Remove the ACKed packet from the client's sent queue, regardless of ID
             removePacketSent(packet.id());
+            // 🚨 ADD THESE LINES BACK IN 🚨
+            System.out.println("[DEBUG] Checking Incoming ACK ID: " + packet.id());
+            System.out.println("[DEBUG]   - Stored aesKeyPacket ID is: " + aesKeyPacket);
+            System.out.println("[DEBUG]   - Stored initialHandshakePacketId is: " + initialHandshakePacketId);
             
-            if (packet.id() == initialHandshakePacketId) {
-                System.out.println("Server acknowledged final handshake step (Initial ID: " + initialHandshakePacketId + "). Sending authentication...");
+            
+            if (packet.id() == aesKeyPacket) {
+                System.out.println("Received ACK for AES Key Packet (" + packet.id() + ").");
+                // NOTE: No further action here. We just acknowledge the ID.
+            } else if (packet.id() == initialHandshakePacketId) {
+                System.out.println("Received ACK for Initial Request (" + packet.id() + ").");
                 
+                // 🏆 FINAL TRIGGER 🏆
+                System.out.println("Handshake complete. Sending authentication...");
                 sendAuthentication(packet.address(), packet.port());
                 this.state = ConnectionState.AWAITING_AUTH_ACK;
                 
-            } else {
-                // This is the ACK for the AES key exchange packet. We are now waiting for the final initial packet ACK.
-                System.out.println("Received ACK for AES Key Exchange. Tracking complete for ID " + packet.id() + ". Waiting for final ACK.");
             }
-            
-            return false;
         }
         
         // Drop unhandled packets during handshake
@@ -253,16 +291,21 @@ public final class ClientNetworkThread extends NetworkThread {
         byte[] tokenBytes = dummyToken.getBytes(UTF_8);
         
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES + tokenBytes.length);
-        buffer.putInt(tokenBytes.length);
-        buffer.put(tokenBytes);
+        buffer.order(java.nio.ByteOrder.BIG_ENDIAN);
+        buffer.putInt(tokenBytes.length); // TOKEN LENGTH
+        buffer.put(tokenBytes); // TOKEN
         
         byte[] authPayload = buffer.array();
         
         // Send the authentication packet. It must be RELIABLE (true) and ENCRYPTED (true).
-        send(authPacketId, authPayload, serverAddress, serverPort, AUTHENTICATION.getType(), true, true);
+        send(authPacketId, authPayload, serverAddress, serverPort, AUTHENTICATION.getByte(), true, true);
     }
     
     public void send(String msg, boolean critical, boolean encrypted) {
         send(msg, serverAddress, serverPort, critical, encrypted);
+    }
+    
+    public boolean isConnected() {
+        return state == ConnectionState.CONNECTED;
     }
 }

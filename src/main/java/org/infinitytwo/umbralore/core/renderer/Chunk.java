@@ -16,8 +16,6 @@ import org.joml.Vector3i;
 import org.lwjgl.opengl.*;
 
 import java.nio.FloatBuffer;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL15.*;
@@ -36,32 +34,68 @@ import static org.lwjgl.opengl.GL30.*;
  * [ x (float), y (float), z (float), u (float), v (float), brightness (float 0-1) ]
  * The winding is: Clockwise (CW)
  */
-public class Chunk {
-    public static final int SIZE_X = 16;
-    public static final int SIZE_Y = 128;
-    public static final int SIZE_Z = 16;
-
-    private final Vector2i chunkPos;
-    private final int[] blocks;
-    private final Map<Vector3i, byte[]> blockData = new HashMap<>();
-
+public class Chunk extends ChunkData {
     private int vaoId;
     private int vboId;
     private int vertexCount;
     private int vboCapacityFloats = 0;
 
     private final ShaderProgram shaderProgram;
-    private boolean isDirty = false;
+    private volatile boolean isDirty = false;
     private final TextureAtlas atlas;
-    private final GridMap gridMap;
     private final BlockRegistry registry;
     private final NFloatBuffer nBuffer; // Native Float Buffer
 
-    public Chunk(Vector2i chunkPos, ShaderProgram shaderProgram, TextureAtlas atlas, GridMap map, BlockRegistry registry) {
-        this.chunkPos = new Vector2i(chunkPos);
+    public Chunk(Vector2i position, ShaderProgram shaderProgram, TextureAtlas atlas, GridMap map, BlockRegistry registry) {
+        super(position);
         this.shaderProgram = shaderProgram;
         this.atlas = atlas;
-        this.gridMap = map;
+        this.map = map;
+        this.registry = registry;
+        this.blocks = new int[SIZE_X * SIZE_Y * SIZE_Z];
+        setupMeshBuffers();
+        nBuffer = new NFloatBuffer();
+    }
+    
+    public Chunk(Vector2i position, TextureAtlas atlas, GridMap map, BlockRegistry registry) {
+        super(position);
+        this.position = new Vector2i(position);
+        this.shaderProgram = new ShaderProgram(
+                """
+                        #version 330 core
+                        layout (location = 0) in vec3 aPos;
+                        layout (location = 1) in vec2 aTexCoord;
+                        layout (location = 2) in float aBrightness;
+                        
+                        out vec2 TexCoord;
+                        out float Brightness;
+                        
+                        uniform mat4 model;
+                        uniform mat4 view;
+                        uniform mat4 projection;
+                        
+                        void main() {
+                            TexCoord = aTexCoord;
+                            Brightness = aBrightness;
+                            gl_Position = projection * view * model * vec4(aPos, 1.0);
+                        }
+                        """,
+                """
+                        #version 330 core
+                        in vec2 TexCoord;
+                        in float Brightness;
+                        
+                        uniform sampler2D ourTexture;
+                        
+                        out vec4 FragColor;
+                        
+                        void main() {
+                            vec4 texColor = texture(ourTexture, TexCoord);
+                            FragColor = vec4(texColor.rgb * Brightness, texColor.a);
+                        }
+                        """);
+        this.atlas = atlas;
+        this.map = map;
         this.registry = registry;
         this.blocks = new int[SIZE_X * SIZE_Y * SIZE_Z];
         setupMeshBuffers();
@@ -89,30 +123,6 @@ public class Chunk {
         }
     }
 
-    public void setData(int x, int y, int z, byte[] data) throws IllegalChunkAccessException {
-        setData(new Vector3i(x,y,z),data);
-    }
-
-    public void setData(Vector3i pos, byte[] data) throws IllegalChunkAccessException {
-        if (inBounds(pos.x, pos.y, pos.z)) {
-            if (blockData.containsKey(pos)) blockData.replace(pos, data);
-            else blockData.put(pos,data);
-        }
-        else
-            throw new IllegalChunkAccessException("Position (" + pos.x + ", " + pos.y + ", " + pos.z + ") is out of bounds");
-    }
-
-    public byte[] getData(int x, int y, int z) throws IllegalChunkAccessException {
-        if (inBounds(x, y, z)) return blockData.get(new Vector3i(x, y, z));
-        else throw new IllegalChunkAccessException("Position (" + x + ", " + y + ", " + z + ") is out of bounds");
-    }
-
-    public byte[] getData(Vector3i pos) throws IllegalChunkAccessException {
-        if (inBounds(pos.x, pos.y, pos.z)) return blockData.get(pos);
-        else
-            throw new IllegalChunkAccessException("Position (" + pos.x + ", " + pos.y + ", " + pos.z + ") is out of bounds");
-    }
-
     public void setBlock(int x, int y, int z, int blockId) throws IllegalChunkAccessException {
         setBlock(x, y, z, blockId, false);
     }
@@ -120,24 +130,15 @@ public class Chunk {
     private void notifyNeighboringChunks(int x, int y, int z) {
         Vector2i currentChunkPos = this.getPosition();
 
-        if (x == 0) gridMap.rebuildChunk(currentChunkPos.x - 1, currentChunkPos.y);
-        if (x == SIZE_X - 1) gridMap.rebuildChunk(currentChunkPos.x + 1, currentChunkPos.y);
-        if (z == 0) gridMap.rebuildChunk(currentChunkPos.x, currentChunkPos.y - 1);
-        if (z == SIZE_Z - 1) gridMap.rebuildChunk(currentChunkPos.x, currentChunkPos.y + 1);
-    }
-
-    public int getBlockId(int x, int y, int z) {
-        if (!inBounds(x, y, z)) return 0;
-        return blocks[getIndex(x, y, z)];
+        if (x == 0) map.rebuildChunk(currentChunkPos.x - 1, currentChunkPos.y);
+        if (x == SIZE_X - 1) map.rebuildChunk(currentChunkPos.x + 1, currentChunkPos.y);
+        if (z == 0) map.rebuildChunk(currentChunkPos.x, currentChunkPos.y - 1);
+        if (z == SIZE_Z - 1) map.rebuildChunk(currentChunkPos.x, currentChunkPos.y + 1);
     }
 
     private void setupMeshBuffers() {
         vaoId = glGenVertexArrays();
         vboId = glGenBuffers();
-    }
-
-    public ChunkData toChunkData() {
-        return new ChunkData(chunkPos, gridMap);
     }
 
     public void buildMeshData() {
@@ -154,7 +155,7 @@ public class Chunk {
                         BlockType type = registry.get(id);
                         if (type == null) continue;
 
-                        type.buildModel(gridMap, GridMap.convertToWorldPosition(chunkPos, x, y, z), atlas, registry, nBuffer);
+                        type.buildModel(map, GridMap.convertToWorldPosition(position, x, y, z), atlas, registry, nBuffer);
                     }
                 }
             }
@@ -247,10 +248,6 @@ public class Chunk {
         nBuffer.cleanup();
     }
 
-    public Vector2i getPosition() {
-        return new Vector2i(chunkPos);
-    }
-
     public int[] getBlockData() {
         return blocks;
     }
@@ -276,14 +273,23 @@ public class Chunk {
     }
 
     public static Chunk of(ChunkData data, GridMap map, ShaderProgram program, TextureAtlas atlas, BlockRegistry registry) throws IllegalChunkAccessException {
-        Chunk chunk = new Chunk(data.position, program, atlas, map, registry);
+        Chunk chunk = new Chunk(data.getPosition(), program, atlas, map, registry);
         int[] sourceBlocks = data.getBlockIds();
         System.arraycopy(sourceBlocks, 0, chunk.blocks, 0, chunk.blocks.length);
 
         chunk.dirty();
         return chunk;
     }
-
+    
+    public static Chunk of(ChunkData data, GridMap map, TextureAtlas atlas, BlockRegistry registry) throws IllegalChunkAccessException {
+        Chunk chunk = new Chunk(data.getPosition(), atlas, map, registry);
+        int[] sourceBlocks = data.getBlockIds();
+        System.arraycopy(sourceBlocks, 0, chunk.blocks, 0, chunk.blocks.length); // FAILS HERE
+        
+        chunk.dirty();
+        return chunk;
+    }
+    
     public int getBlockId(Vector3i pos) {
         return getBlockId(pos.x, pos.y, pos.z);
     }

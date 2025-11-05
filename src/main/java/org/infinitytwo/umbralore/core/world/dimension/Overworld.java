@@ -3,6 +3,7 @@ package org.infinitytwo.umbralore.core.world.dimension;
 import org.infinitytwo.umbralore.core.constants.Biomes;
 import org.infinitytwo.umbralore.core.context.ClientContext;
 import org.infinitytwo.umbralore.core.context.ServerContext;
+import org.infinitytwo.umbralore.core.data.ChunkPos;
 import org.infinitytwo.umbralore.core.data.PlayerData;
 import org.infinitytwo.umbralore.core.registry.BlockRegistry;
 import org.infinitytwo.umbralore.core.world.ServerGridMap;
@@ -30,7 +31,7 @@ public class Overworld extends Dimension {
     }
 
     @Override
-    public void generate(ServerGridMap.ChunkPos chunk) {
+    public void generate(ChunkPos chunk) {
         world.generate(chunk);
     }
 

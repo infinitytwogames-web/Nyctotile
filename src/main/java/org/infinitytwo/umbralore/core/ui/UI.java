@@ -38,7 +38,7 @@ public abstract class UI {
     }
 
     public void addComponent(Component component) {
-        components.put(Logger.formatClassName(component.getClass()),component);
+        components.put(component.getClass().getSimpleName(),component);
     }
 
     public boolean isHovering() {

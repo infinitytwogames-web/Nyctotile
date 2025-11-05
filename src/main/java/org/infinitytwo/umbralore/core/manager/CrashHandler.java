@@ -5,14 +5,17 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import static org.infinitytwo.umbralore.core.Main.cleanup;
+
 public class CrashHandler {
+    private static final List<String> crashMessages = Collections.synchronizedList(new ArrayList<>());
+    private static final ConcurrentLinkedQueue<String> concerns = new ConcurrentLinkedQueue<>();
 
-    private final List<String> crashMessages = Collections.synchronizedList(new ArrayList<>());
-    private final ConcurrentLinkedQueue<String> concerns = new ConcurrentLinkedQueue<>();
-
-    public void init() {
-        buildText(); // call early to guarantee population
-
+    static {
+        buildText();
+    }
+    
+    public static void init() {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             System.err.println("\nUNCAUGHT EXCEPTION IN THREAD \"" + t.getName() + "\": " + e);
             e.printStackTrace();
@@ -58,44 +61,31 @@ public class CrashHandler {
             }
 
             System.err.println("Crash report saved to: " + crashFile.getAbsolutePath());
-            System.exit(1);
+            cleanup();
         });
     }
 
-    private String randomCrashMessage() {
+    private static String randomCrashMessage() {
         if (crashMessages.isEmpty()) return "Oops! The game crashed unexpectedly.";
         return crashMessages.get(new Random().nextInt(crashMessages.size())) + "\n\nJokes aside...";
     }
 
-    public void addConcern(String message) {
+    public static void addConcern(String message) {
         concerns.add(message);
     }
 
-    private long toMB(long bytes) {
+    private static long toMB(long bytes) {
         return bytes / 1024 / 1024;
     }
-
-    public String formatStacktrace(Throwable throwable) {
-        StringBuilder builder = new StringBuilder();
-
-        while (throwable != null) {
-            builder.append("Caused by: ").append(throwable.getClass().getName());
-            if (throwable.getMessage() != null)
-                builder.append(": ").append(throwable.getMessage());
-            builder.append("\n");
-
-            for (StackTraceElement element : throwable.getStackTrace()) {
-                builder.append("  at ").append(element.toString()).append("\n");
-            }
-
-            throwable = throwable.getCause();
-            if (throwable != null) builder.append("\n");
-        }
-
-        return builder.toString();
+    
+    public static String formatStacktrace(Throwable throwable) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        throwable.printStackTrace(pw);
+        return sw.toString();
     }
-
-    public void buildText() {
+    
+    public static void buildText() {
         if (!crashMessages.isEmpty()) return;
 
         Collections.addAll(crashMessages,

@@ -52,7 +52,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Main {
     private static Window window;
-    private static final Logger logger = new Logger("Umbralore");
+    private static final Logger logger = new Logger(Main.class);
     private static final ConcurrentLinkedQueue<Runnable> tasks = new ConcurrentLinkedQueue<>();
 
     private static final HashMap<Integer, Boolean> keyStates = new HashMap<>();
@@ -178,7 +178,7 @@ public class Main {
                 if (isMouseJustPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
                     handleBlockInteraction();
                 } else if (isMouseJustPressed(GLFW_MOUSE_BUTTON_LEFT)) {
-                    GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
+                    RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
                     if (hit != null) {
                         try {
                             map.removeBlock(hit.blockPos());
@@ -202,7 +202,7 @@ public class Main {
     }
 
     private static void handleBlockInteraction() {
-        GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
+        RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
         if (hit != null) {
             Vector3i face = hit.hitNormal();
             Vector3i pos = new Vector3i(
@@ -469,7 +469,7 @@ public class Main {
 //        test.draw(camera, window, 5);
 
         map.draw(camera, window, 16);
-        GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
+        RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
         if (hit != null) {
 
             outliner.render(new Vector3f(hit.blockPos()), camera, window, new Vector3f());
@@ -496,11 +496,11 @@ public class Main {
         int chunkX = (int) Math.floor(camera.getPosition().x / ChunkData.SIZE);
         int chunkZ = (int) Math.floor(camera.getPosition().z / ChunkData.SIZE);
 
-        List<GridMap.ChunkPos> chunks = map.getMissingSurroundingChunks(
-                new GridMap.ChunkPos(chunkX, chunkZ), 5
+        List<ChunkPos> chunks = map.getMissingSurroundingChunks(
+                new ChunkPos(chunkX, chunkZ), 5
         );
 
-        for (GridMap.ChunkPos pos : chunks) {
+        for (ChunkPos pos : chunks) {
             getChunk(new Vector2i(pos.x(), pos.z()));
         }
     }
@@ -545,7 +545,7 @@ public class Main {
     }
 
     private static void drop() {
-        GridMap.RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
+        RaycastResult hit = map.raycast(camera.getPosition(), camera.getDirection(), 6);
         map.getChunk(GridMap.worldToChunk(hit.blockPos())).setData(GridMap.convertToLocalChunk(hit.blockPos()), reader.serialize(registry.get(dynamic), dynamic));
     }
 

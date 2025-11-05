@@ -1,247 +1,355 @@
 package org.infinitytwo.umbralore.core.logging;
 
-import org.infinitytwo.umbralore.core.Main;
-import org.infinitytwo.umbralore.core.RGB;
-import org.infinitytwo.umbralore.core.renderer.CleanupManager;
-import org.infinitytwo.umbralore.core.exception.VerboseException;
-import org.infinitytwo.umbralore.core.ui.UI;
-
-import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.event.Level;
+import org.slf4j.helpers.CheckReturnValue;
+import org.slf4j.spi.LoggingEventBuilder;
 
 public class Logger {
-    private final String name;
-//    private final FileOutputStream stream;
-
-    public Logger(String processName) {
-        this.name = processName;
-        String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
-
-//        File file = Path.of("logs",LocalDateTime.now().format(DateTimeFormatter.ofPattern(pattern))).toFile();
-//        try {
-//            stream = new FileOutputStream(file, true);
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
+    protected final org.slf4j.Logger logger;
+    
+    public Logger(Class<?> c) {
+        this.logger = LoggerFactory.getLogger(c);
     }
-
-    private void log(String message) {
-        System.out.println(message);
-//        try {
-//            stream.write((message+"\n").getBytes(StandardCharsets.UTF_8));
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
+    
+    public String getName() {
+        return logger.getName();
     }
-
-    public void info(String... messages) {
-        log(format(LoggingLevel.INFO, messages));
+    
+    public void error(String s) {
+        s = "\001b[31m" + s + "\001b[0m";
+        
+        logger.error(s);
     }
-
-    @SafeVarargs
-    public final <T> void info(T... objects) {
-        log(formatObj(LoggingLevel.INFO, objects));
+    
+    public void debug(String s, Object... objects) {
+        logger.debug(s, objects);
     }
-
-    public void warn(String... messages) {
-        log("\033[43m" + format(LoggingLevel.WARN, messages) + "\033[0m");
+    
+    public void debug(Marker marker, String s, Throwable throwable) {
+        logger.debug(marker, s, throwable);
     }
-
-    public void warn(Object... objects) {
-        log("\033[43m" + formatObj(LoggingLevel.WARN, objects) + "\033[0m");
+    
+    public void trace(Marker marker, String s, Object o, Object o1) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(marker,s, o, o1);
     }
-
-    public void error(Throwable e, String... messages) {
-        System.err.println("\033[31m" + format(LoggingLevel.ERROR, messages) + "\033[0m");
-        if (e instanceof VerboseException) {
-            e.printStackTrace(); // Rely on VerboseException's custom output
-        } else {
-            printStacktrace(e, LoggingLevel.ERROR); // Use Logger's formatting
-        }
+    
+    public boolean isInfoEnabled(Marker marker) {
+        return logger.isInfoEnabled(marker);
     }
-
-    public void error(Throwable e, Object... objects) {
-        System.err.println("\033[31m" + formatObj(LoggingLevel.ERROR, objects) + "\033[0m");
-        if (e instanceof VerboseException) {
-            e.printStackTrace(); // Rely on VerboseException's custom output
-        } else {
-            printStacktrace(e, LoggingLevel.ERROR); // Use Logger's formatting
-        }
+    
+    public void error(Marker marker, String s, Object o) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(marker, s, o);
     }
-
-    public void error(String... messages) {
-        System.err.println("\033[31m" + format(LoggingLevel.ERROR, messages) + "\033[0m");
+    
+    public void warn(Marker marker, String s, Object o) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(marker, s, o);
     }
-
-    public void error(Object... objects) {
-        System.err.println("\033[31m" + formatObj(LoggingLevel.ERROR, objects) + "\033[0m");
+    
+    public void warn(String s) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(s);
     }
-
-    public void fatal(Throwable e, String... messages) {
-        System.err.println("\033[31m" + format(LoggingLevel.FATAL, messages) + "\033[0m");
-        if (e instanceof VerboseException) {
-            e.printStackTrace(); // Rely on VerboseException's custom output
-        } else {
-            printStacktrace(e, LoggingLevel.FATAL); // Use Logger's formatting
-        }
-        CleanupManager.createPopup("A Fatal error has been thrown: " + e.getMessage() + "\n" + formatStacktrace(e));
-        Main.cleanup();
+    
+    public void trace(String s, Object o) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(s, o);
     }
-
-    public void fatal(Throwable e, Object... objects) {
-        System.err.println("\033[31m" + formatObj(LoggingLevel.FATAL, objects) + "\033[0m");
-        if (e instanceof VerboseException) {
-            e.printStackTrace(); // Rely on VerboseException's custom output
-        } else {
-            printStacktrace(e, LoggingLevel.FATAL); // Use Logger's formatting
-        }
-        CleanupManager.createPopup("A Fatal error has been thrown: " + e.getMessage() + "\n" + formatStacktrace(e));
-        Main.cleanup();
+    
+    public void error(String s, Object o, Object o1) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(s, o, o1);
     }
-
-    public void debug(Object... objects) {
-        log(formatObj(LoggingLevel.DEBUG, objects));
+    
+    public void info(Marker marker, String s, Object o) {
+        logger.info(marker, s, o);
     }
-
-    public void debug(String... messages) {
-        log(format(LoggingLevel.DEBUG, messages));
+    
+    public void debug(String s, Object o) {
+        logger.debug(s, o);
     }
-
-    public void trace(String... messages) {
-        log(format(LoggingLevel.TRACE, messages));
+    
+    public void trace(Marker marker, String s) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(marker, s);
     }
-
-    public void trace(Object... objects) {
-        log(formatObj(LoggingLevel.TRACE, objects));
+    
+    public void info(String s) {
+        logger.info(s);
     }
-
-    public String getProcessName() {
-        return name;
+    
+    public boolean isTraceEnabled() {
+        return logger.isTraceEnabled();
     }
-
-    private String format(LoggingLevel level, String[] messages) {
-        StringBuilder result = new StringBuilder();
-        result.append(formatTime(level));
-
-        for (String message : messages) {
-            result.append(message).append(" ");
-        }
-        return result.toString();
+    
+    public void warn(String s, Object... objects) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(s, objects);
     }
-
-    private <T> String formatObj(LoggingLevel level, T[] objects) {
-        if (objects.length == 0) return "";
-
-        StringBuilder objectResult = new StringBuilder();
-        StringBuilder textResult = new StringBuilder();
-        textResult.append(formatTime(level));
-
-        String finalResult = "";
-
-        for (Object obj : objects) {
-            if (obj == null) {
-                textResult.append("<NULL> ");
-                continue;
-            }
-
-            Class<?> classFromObj = obj.getClass();
-            if (!isPrimitiveClass(classFromObj) && !isSupported(classFromObj)) {
-                objectResult.append("Class: ")
-                        .append(classFromObj.getName())
-                        .append(" (")
-                        .append(formatClassName(classFromObj))
-                        .append(")\n")
-                        .append(obj)
-                ;
-            } else {
-                textResult.append(obj).append(" ");
-            }
-        }
-
-        finalResult = textResult.toString() + objectResult.toString();
-
-        return finalResult;
+    
+    public void error(Marker marker, String s, Object... objects) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(marker, s, objects);
     }
-
-    private String formatTime(LoggingLevel level) {
-        StringBuilder result = new StringBuilder();
-        LocalDateTime time = LocalDateTime.now();
-        String pattern = "yyyy-MM-dd HH:mm:ss.SSS";
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-        result.append("[")
-                .append(time.format(formatter))
-                .append("] [")
-                .append(this.name)
-                .append(".")
-                .append(Thread.currentThread().getName())
-                .append("/")
-                .append(level)
-                .append("]: ");
-
-        return result.toString();
+    
+    @CheckReturnValue
+    public LoggingEventBuilder atTrace() {
+        return logger.atTrace();
     }
-
-    private void printStacktrace(Throwable e, LoggingLevel level) {
-        log(formatStacktrace(e));
+    
+    public void debug(Marker marker, String s, Object o) {
+        logger.debug(marker, s, o);
     }
-
-    public static String formatStacktrace(Throwable e) {
-        StringBuilder builder = new StringBuilder();
-        builder
-                .append("An exception has been occurred!\n")
-                .append("   Message: ")
-                .append(e.getMessage() == null ? "<No Message (null)>" : e.getMessage())
-                .append("\n   Stacktrace:\n");
-        for (StackTraceElement element : e.getStackTrace()) {
-            if (element.isNativeMethod()) {
-                builder.append("       [NATIVE METHOD] ")
-                        .append(element.getClassName())
-                        .append(" {")
-                        .append(element.getFileName())
-                        .append("} at line: ")
-                        .append(element.getLineNumber())
-                        .append(" inside ")
-                        .append(element.getMethodName())
-                        .append("\n");
-            } else {
-                builder.append("       [METHOD] ")
-                        .append(element.getClassName())
-                        .append(" {")
-                        .append(element.getFileName())
-                        .append("} at line: ")
-                        .append(element.getLineNumber())
-                        .append(" inside ")
-                        .append(element.getMethodName())
-                        .append("\n");
-            }
-        }
-        return "\033[31m" + builder + "\033[0m";
+    
+    public void error(Marker marker, String s, Throwable throwable) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(marker, s, throwable);
     }
-
-    public static String formatClassName(Class<?> classProvided) {
-        String fullName = classProvided.getName();
-        String packageName = classProvided.getPackageName();
-        return fullName.replaceAll(packageName + ".", "");
+    
+    public void info(Marker marker, String s, Object o, Object o1) {
+        logger.info(marker, s, o, o1);
     }
-
-    private static boolean isPrimitiveClass(Class<?> classProvided) {
-        return classProvided.isPrimitive() || Number.class.isAssignableFrom(classProvided) || String.class.isAssignableFrom(classProvided) || Boolean.class.isAssignableFrom(classProvided);
+    
+    public void warn(String s, Object o, Object o1) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(s, o, o1);
     }
-
-    private static boolean isSupported(Class<?> clazz) {
-        if (clazz.isAssignableFrom(RGB.class)) return true;
-        else return clazz.isAssignableFrom(UI.class);
+    
+    @CheckReturnValue
+    public LoggingEventBuilder atLevel(Level level) {
+        return logger.atLevel(level);
     }
-
-    @SafeVarargs
-    @SuppressWarnings("varargs")
-    public final <T extends Number> void info(T... numbers) {
-        log(formatObj(LoggingLevel.INFO, numbers));
+    
+    public boolean isTraceEnabled(Marker marker) {
+        return logger.isTraceEnabled(marker);
+    }
+    
+    public void debug(Marker marker, String s, Object o, Object o1) {
+        logger.debug(marker, s, o, o1);
+    }
+    
+    public void warn(Marker marker, String s, Throwable throwable) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(marker, s, throwable);
+    }
+    
+    public void trace(Marker marker, String s, Throwable throwable) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(marker, s, throwable);
+    }
+    
+    public boolean isDebugEnabled(Marker marker) {
+        return logger.isDebugEnabled(marker);
+    }
+    
+    public void info(String s, Object... objects) {
+        logger.info(s, objects);
+    }
+    
+    public boolean isErrorEnabled(Marker marker) {
+        return logger.isErrorEnabled(marker);
+    }
+    
+    public boolean isWarnEnabled(Marker marker) {
+        return logger.isWarnEnabled(marker);
+    }
+    
+    public void trace(String s, Object... objects) {
+        logger.trace(s, objects);
+    }
+    
+    public void info(Marker marker, String s, Throwable throwable) {
+        logger.info(marker, s, throwable);
+    }
+    
+    public void trace(String s, Object o, Object o1) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(s, o, o1);
+    }
+    
+    @CheckReturnValue
+    public LoggingEventBuilder atInfo() {
+        return logger.atInfo();
+    }
+    
+    public void warn(Marker marker, String s) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(marker, s);
+    }
+    
+    public void error(Marker marker, String s, Object o, Object o1) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(marker, s, o, o1);
+    }
+    
+    public boolean isWarnEnabled() {
+        return logger.isWarnEnabled();
+    }
+    
+    public void debug(String s, Object o, Object o1) {
+        logger.debug(s, o, o1);
+    }
+    
+    @CheckReturnValue
+    public LoggingEventBuilder atDebug() {
+        return logger.atDebug();
+    }
+    
+    public void info(Marker marker, String s) {
+        logger.info(marker, s);
+    }
+    
+    public void error(String s, Object o) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(s, o);
+    }
+    
+    public void trace(String s) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(s);
+    }
+    
+    public void trace(Marker marker, String s, Object o) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(marker, s, o);
+    }
+    
+    public boolean isInfoEnabled() {
+        return logger.isInfoEnabled();
+    }
+    
+    public void warn(Marker marker, String s, Object o, Object o1) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(marker, s, o, o1);
+    }
+    
+    public void debug(Marker marker, String s) {
+        logger.debug(marker, s);
+    }
+    
+    public void warn(String s, Object o) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(s, o);
+    }
+    
+    public void error(String s, Object... objects) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(s, objects);
+    }
+    
+    public boolean isEnabledForLevel(Level level) {
+        return logger.isEnabledForLevel(level);
+    }
+    
+    public void debug(String s) {
+        logger.debug(s);
+    }
+    
+    public void info(String s, Object o) {
+        logger.info(s, o);
+    }
+    
+    public void warn(Marker marker, String s, Object... objects) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(marker, s, objects);
+    }
+    
+    public boolean isDebugEnabled() {
+        return logger.isDebugEnabled();
+    }
+    
+    public void info(String s, Object o, Object o1) {
+        logger.info(s, o, o1);
+    }
+    
+    @CheckReturnValue
+    public LoggingEventBuilder atError() {
+        return logger.atError();
+    }
+    
+    public LoggingEventBuilder makeLoggingEventBuilder(Level level) {
+        return logger.makeLoggingEventBuilder(level);
+    }
+    
+    public void error(String s, Throwable throwable) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(s, throwable);
+    }
+    
+    public void trace(String s, Throwable throwable) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(s, throwable);
+    }
+    
+    public void info(Marker marker, String s, Object... objects) {
+        logger.info(marker, s, objects);
+    }
+    
+    public void warn(String s, Throwable throwable) {
+        s = s + "\001b[33m" + "\001b[0m";
+        
+        logger.warn(s, throwable);
+    }
+    
+    public void debug(Marker marker, String s, Object... objects) {
+        logger.debug(marker, s, objects);
+    }
+    
+    public void trace(Marker marker, String s, Object... objects) {
+        s = s + "\001b[36m" + "\001b[0m";
+        
+        logger.trace(marker, s, objects);
+    }
+    
+    public void debug(String s, Throwable throwable) {
+        logger.debug(s, throwable);
+    }
+    
+    public boolean isErrorEnabled() {
+        return logger.isErrorEnabled();
+    }
+    
+    public void info(String s, Throwable throwable) {
+        logger.info(s, throwable);
+    }
+    
+    @CheckReturnValue
+    public LoggingEventBuilder atWarn() {
+        return logger.atWarn();
+    }
+    
+    public void error(Marker marker, String s) {
+        s = s + "\001b[31m" + "\001b[0m";
+        
+        logger.error(marker, s);
     }
 }

@@ -2,6 +2,7 @@ package org.infinitytwo.umbralore.core.world.dimension;
 
 import org.infinitytwo.umbralore.core.context.ClientContext;
 import org.infinitytwo.umbralore.core.context.ServerContext;
+import org.infinitytwo.umbralore.core.data.ChunkPos;
 import org.infinitytwo.umbralore.core.data.PlayerData;
 import org.infinitytwo.umbralore.core.registry.Registerable;
 import org.infinitytwo.umbralore.core.world.ServerGridMap;
@@ -54,7 +55,7 @@ public abstract class Dimension implements Registerable {
         return "Dimension[" + name + " | id=" + id + "]";
     }
 
-    public abstract void generate(ServerGridMap.ChunkPos chunk);
+    public abstract void generate(ChunkPos chunk);
     public abstract void playerEntered(ServerContext context, PlayerData playerData);
     public abstract void playerLeave(PlayerData playerData);
 //    public abstract SpawnLocation playerDied(Player player);

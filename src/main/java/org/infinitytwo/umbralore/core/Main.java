@@ -6,6 +6,7 @@ import org.infinitytwo.umbralore.block.GrassBlockType;
 import org.infinitytwo.umbralore.block.StoneBlockType;
 import org.infinitytwo.umbralore.core.constants.Biomes;
 import org.infinitytwo.umbralore.core.constants.Constants;
+import org.infinitytwo.umbralore.core.data.ChunkPos;
 import org.infinitytwo.umbralore.core.debug.TerminalFrame;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
@@ -39,7 +40,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Main {
-    private static final Logger logger = new Logger("Main");
+    private static final Logger logger = new Logger(Main.class);
     private static final byte[] empty = {};
     private static FontRenderer fontRenderer;
     private static ConcurrentLinkedQueue<Runnable> queuedTasks;
@@ -158,7 +159,7 @@ public class Main {
         
         // SERVER
         ServerProcedureGridMap gridMap = new ServerProcedureGridMap(5, NoiseGenerationSettings.getDefault(5, Biomes.getBiomes()),BlockRegistry.getMainBlockRegistry());
-        gridMap.generate(new ServerGridMap.ChunkPos(0,0));
+        gridMap.generate(new ChunkPos(0,0));
         server.register(new Object(){
             @SubscribeEvent
             public void e(PacketReceived e) {

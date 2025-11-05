@@ -1,9 +1,14 @@
 package org.infinitytwo.umbralore.core.world;
 
+import org.infinitytwo.umbralore.block.BlockType;
 import org.infinitytwo.umbralore.core.Window;
 import org.infinitytwo.umbralore.core.data.Block;
 import org.infinitytwo.umbralore.core.data.ChunkData;
+import org.infinitytwo.umbralore.core.data.ChunkPos;
+import org.infinitytwo.umbralore.core.data.RaycastResult;
+import org.infinitytwo.umbralore.core.data.io.BlockDataReader;
 import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
+import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
 import org.infinitytwo.umbralore.core.model.TextureAtlas;
 import org.infinitytwo.umbralore.core.registry.BlockRegistry;
 import org.infinitytwo.umbralore.core.renderer.Camera;
@@ -21,9 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.infinitytwo.umbralore.core.data.ChunkData.SIZE_X;
 import static org.infinitytwo.umbralore.core.renderer.Chunk.SIZE_Z;
 
-public class GridMap {
+public class GridMap extends GMap {
     protected final ConcurrentHashMap<ChunkPos, Chunk> chunks = new ConcurrentHashMap<>();
-    protected boolean isReady = false;
     protected final BlockRegistry registry;
     private final FrustumCuller culler = new FrustumCuller();
 
@@ -94,7 +98,37 @@ public class GridMap {
     public void removeBlock(Vector3i pos) throws IllegalChunkAccessException {
         removeBlock(pos.x,pos.y, pos.z);
     }
-
+    
+    public List<ChunkPos> getSurroundingChunks(ChunkPos center, int radius) {
+        List<ChunkPos> result = new ArrayList<>();
+        for (int dx = -radius; dx <= radius; dx++) {
+            for (int dz = -radius; dz <= radius; dz++) {
+                result.add(new ChunkPos(center.x() + dx, center.z() + dz));
+            }
+        }
+        return result;
+    }
+    
+    @Override
+    public BlockType getBlockType(Vector3i pos) {
+        return null;
+    }
+    
+    public void insertData(Vector3i pos, byte[] data) throws IllegalChunkAccessException {
+        chunks.get(worldToChunkPos(pos.x, pos.z)).setData(pos, data);
+    }
+    
+    @Override
+    public byte[] getData(Vector3i pos) throws IllegalChunkAccessException {
+        return chunks.get(worldToChunkPos(pos.x, pos.z)).getData(pos);
+    }
+    
+    @Override
+    public Object getData(Vector3i pos, BlockDataReader reader, String name) throws IllegalChunkAccessException, IllegalDataTypeException {
+        Chunk chunk = chunks.get(worldToChunkPos(pos.x, pos.z));
+        return reader.getData(chunk.getBlockId(pos.x,pos.y,pos.z), chunk.getData(pos), name);
+    }
+    
     public void addChunk(Chunk chunk) {
         chunks.put(new ChunkPos(chunk.getPosition().x,chunk.getPosition().y),chunk);
     }
@@ -106,16 +140,6 @@ public class GridMap {
         if (chunks.containsKey(pos)) {
             chunks.get(pos).dirty();
         }
-    }
-
-    public static List<ChunkPos> getSurroundingChunks(ChunkPos center, int radius) {
-        List<ChunkPos> result = new ArrayList<>();
-        for (int dx = -radius; dx <= radius; dx++) {
-            for (int dz = -radius; dz <= radius; dz++) {
-                result.add(new ChunkPos(center.x + dx, center.z + dz));
-            }
-        }
-        return result;
     }
 
     public void draw(Camera camera, Window window, int view) {
@@ -207,7 +231,12 @@ public class GridMap {
 
         return null;
     }
-
+    
+    @Override
+    public void setBlock(Block block) throws IllegalChunkAccessException {
+    
+    }
+    
     public void placeBlock(Block block) throws IllegalChunkAccessException {
         Vector3i blockPos = block.getPosition();
         Vector2i p = convertToChunkPosition(blockPos);
@@ -234,7 +263,7 @@ public class GridMap {
         List<ChunkPos> result = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                ChunkPos p = new ChunkPos(center.x + dx, center.z + dz);
+                ChunkPos p = new ChunkPos(center.x() + dx, center.z() + dz);
                 if (!chunks.containsKey(p)) result.add(p);
             }
         }
@@ -249,17 +278,12 @@ public class GridMap {
         return new ArrayList<>(chunks.values());
     }
 
-    public boolean isTransparent(int x, int y, int z) { // that's what being used
+    public boolean isTransparent(int x, int y, int z) {
         Block block = getBlock(x,y,z);
         return block == null;
-//        return block.getType().isInvisible();
     }
 
     public BlockRegistry getRegistry() {
         return registry;
-    }
-
-    public record RaycastResult(Vector3i blockPos, Vector3i hitNormal){}
-    public record ChunkPos(int x, int z) {
     }
 }

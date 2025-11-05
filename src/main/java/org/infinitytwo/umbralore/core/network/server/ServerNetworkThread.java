@@ -11,11 +11,10 @@ import org.infinitytwo.umbralore.core.security.Authentication;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
+import javax.crypto.spec.SecretKeySpec;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
+import java.nio.ByteOrder;
 import java.security.*;
 import java.util.Map;
 import java.util.UUID;
@@ -94,7 +93,7 @@ public final class ServerNetworkThread extends NetworkThread {
     }
     
     @Override
-    protected byte[] decrypt(byte[] data, java.net.InetAddress address, int port) {
+    protected byte[] decrypt(byte[] data, InetAddress address, int port) {
         String clientKey = getClientKey(address, port);
         SecretKey aesKey = clientAesKeys.get(clientKey);
         
@@ -137,7 +136,7 @@ public final class ServerNetworkThread extends NetworkThread {
         // --- STAGE 2: AUTHENTICATED/ENCRYPTED TRAFFIC ---
         
         // 2. Handle Authentication
-        if (packet.type() == AUTHENTICATION.getType()) {
+        if (packet.type() == AUTHENTICATION.getByte()) {
             authenticate(packet);
             // CRITICAL FIX: Return false to prevent NetworkThread from sending a redundant implicit ACK.
             // The explicit ACK is handled inside authenticate().
@@ -152,34 +151,13 @@ public final class ServerNetworkThread extends NetworkThread {
             return false;
             
         } else {
-            // Player is authenticated and in the Players map.
-            
-            if (packet.type() == COMMAND.getType()) {
-                eventBus.post(new PacketReceived(packet, packet.address()));
-                String cmd = new String(packet.payload(), StandardCharsets.UTF_8);
-                if (cmd.startsWith("echo ")) {
-                    String[] args = cmd.split(" ");
-                    StringBuilder r = new StringBuilder();
-                    for (int i = 1; i < args.length; i++) {
-                        r.append(args[ i ]);
-                    }
-                    // Send the response back, encrypted.
-                    send(r.toString(), packet.address(), packet.port(), true, true);
-                }
-                
-                // CRITICAL FIX: Explicitly ACK the COMMAND packet and return false.
-                // This ensures exactly ONE ACK is sent, preventing the loop/timeout.
-                sendConfirmation(packet);
-                return false;
-            } else {}
+            eventBus.post(new PacketReceived(packet));
+            return true;
         }
-        
-        
-        return true;
     }
     
     private boolean handleHandshake(Packet packet) {
-        if (packet.type() == UNENCRYPTED.getType()) {
+        if (packet.type() == UNENCRYPTED.getByte()) {
             String command = new String(packet.payload(), UTF_8).trim();
             
             if (command.equals("publicKey")) {
@@ -188,14 +166,15 @@ public final class ServerNetworkThread extends NetworkThread {
                 // Store the Initial Connection Request ID
                 initialReliablePacketIds.put(getClientKey(packet.address(), packet.port()), packet.id());
                 
-                send(serverPublicKey.getEncoded(), packet.address(), packet.port(), EXCHANGE.getType(), false, false);
+                send(serverPublicKey.getEncoded(), packet.address(), packet.port(), EXCHANGE.getByte(), false, false);
+                
                 return false;
             } else if (command.equals("ping")) {
                 pong(packet.address(), packet.port());
                 return false;
             }
             
-        } else if (packet.type() == EXCHANGE.getType()) {
+        } else if (packet.type() == EXCHANGE.getByte()) {
             try {
                 System.out.println("Handling encrypted AES key from client " + getClientKey(packet.address(), packet.port()) + " (RSA decrypt)...");
                 
@@ -204,24 +183,24 @@ public final class ServerNetworkThread extends NetworkThread {
                 byte[] aesKeyBytes = rsa.doFinal(packet.payload());
                 
                 String clientKey = getClientKey(packet.address(), packet.port());
-                clientAesKeys.put(clientKey, new javax.crypto.spec.SecretKeySpec(aesKeyBytes, "AES"));
+                clientAesKeys.put(clientKey, new SecretKeySpec(aesKeyBytes, "AES"));
                 
                 System.out.println("AES key established for client " + clientKey + ". Sending confirmation ACK.");
                 
                 // CRITICAL FIX: ACK the AES key packet
-                sendConfirmation(packet.id(), packet.address(), packet.port());
+                sendACK(packet.id(), packet.address(), packet.port());
                 
                 // Acknowledge the Stored Initial Connection Request ID
                 Integer initialId = initialReliablePacketIds.remove(clientKey);
                 if (initialId != null) {
                     System.out.println("ACKing initial connection request: " + initialId);
-                    sendConfirmation(initialId, packet.address(), packet.port());
+                    sendACK(initialId, packet.address(), packet.port());
                 }
                 
                 return false;
             } catch (GeneralSecurityException e) {
                 System.err.println("RSA Decryption of AES key failed. Rejecting connection.");
-                sendFailure(packet.id(), "Key exchange failed.", packet.address(), packet.port());
+                sendFailure(packet.id(), "Key exchange failed.", packet.address(), packet.port(), false);
             }
             return false;
         }
@@ -233,35 +212,66 @@ public final class ServerNetworkThread extends NetworkThread {
     private void authenticate(Packet packet) {
         try {
             byte[] payload = packet.payload();
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(payload);
-            DataInputStream inStream = new DataInputStream(inputStream);
+            
+            ByteBuffer buffer = ByteBuffer.wrap(payload);
+            buffer.order(ByteOrder.BIG_ENDIAN);
             
             UUID playerId;
             String tokenId = "";
+            String username; // Declared here to be available for Players.join
             
             if (onlineMode) {
+                // 1. Read Token ID Size
+                if (buffer.remaining() < Integer.BYTES) throw new IllegalArgumentException("Payload too short for token size.");
+                int sizeTokenId = buffer.getInt();
                 
-                // Read Token
-                int sizeTokenId = inStream.readInt();
+                // 2. Validate Token ID Size
+                if (sizeTokenId <= 0 || sizeTokenId > buffer.remaining()) {
+                    throw new IllegalArgumentException("Invalid token size read: " + sizeTokenId + " (Remaining: " + buffer.remaining() + ")");
+                }
+                
+                // 3. Read Token ID
                 byte[] byteTokenId = new byte[sizeTokenId];
-                inStream.readFully(byteTokenId);
+                buffer.get(byteTokenId);
                 tokenId = new String(byteTokenId, UTF_8);
                 
-                System.out.println("Verifying Firebase token...");
-                Authentication.FirebaseTokenPayload p = Authentication.verify(tokenId);
+                // 4. CRITICAL CHECK: Ensure no extra data is present
+                if (buffer.hasRemaining()) {
+                    throw new IllegalArgumentException("AUTHENTICATION packet contains " + buffer.remaining() + " extra bytes after Token ID.");
+                }
                 
-                playerId = UUID.fromString(p.uid());
+                System.out.println("Verifying Firebase token...");
+                try {
+                    Authentication.FirebaseTokenPayload p = Authentication.verify(tokenId);
+                    playerId = UUID.fromString(p.uid());
+                    // Set username based on the verified token or a derived name
+                    username = p.name() != null ? p.name() : playerId.toString().substring(0, 4);
+                    
+                } catch (Exception ex) {
+                    // Log the failure stack trace for debugging purposes
+                    ex.printStackTrace();
+                    sendFailure(packet.id(), "Authentication failed: "+ex.getMessage(), packet.address(), packet.port(),false);
+                    return;
+                }
                 
             } else {
+                // --- OFFLINE MODE ---
                 System.out.println("Authentication skipped: Online mode is disabled (Offline).");
+                // Assuming offline mode implies the client sends the desired username instead of a token ID.
+                // If the protocol should be different in offline mode, this payload reading needs adjusting.
+                // Based on your current AUTHENTICATION definition, let's stick to using a random UUID
+                // and deriving a username if the full token payload is NOT present or is too short.
+                
+                // For simplicity in offline mode, we ignore the payload and generate a temporary identity
                 playerId = UUID.randomUUID();
+                username = "Player_" + playerId.toString().substring(0, 4);
             }
             
             // 3. Final steps after successful authentication
             Players.join(new PlayerData(
                     packet.address(),
                     packet.port(),
-                    "Player_" + playerId.toString().substring(0, 4),
+                    username,
                     playerId,
                     tokenId,
                     !tokenId.isEmpty()
@@ -275,16 +285,16 @@ public final class ServerNetworkThread extends NetworkThread {
             
             System.out.println("Sending connection confirmation with UUID: " + playerId);
             // Send reliable, encrypted CONNECTION packet
-            send(packet.id(), uuidPayload, packet.address(), packet.port(), CONNECTION.getType(), true, true);
+            send(packet.id(), uuidPayload, packet.address(), packet.port(), CONNECTION.getByte(), true, true);
             
             // CRITICAL FIX: Send final ACK for the client's AUTHENTICATION packet.
-            sendConfirmation(packet.id(), packet.address(), packet.port());
+            sendACK(packet.id(), packet.address(), packet.port());
             System.out.println("Connection completed. Final ACK sent for ID: " + packet.id());
             
         } catch (Exception e) {
             System.err.println("Authentication processing error:");
             e.printStackTrace();
-            sendFailure(packet.id(), "Authentication internal error.", packet.address(), packet.port());
+            sendFailure(packet.id(), "Authentication internal error.", packet.address(), packet.port(),false);
         }
     }
     

@@ -30,6 +30,7 @@ public class Screen {
     private final FontRenderer renderer;
     private final Tooltip tooltip;
     private boolean showTooltip = false;
+    private boolean handleInput = true;
 
     public Screen(UIBatchRenderer uiBatchRenderer, Window window) {
         this.uiBatchRenderer = uiBatchRenderer;
@@ -106,6 +107,7 @@ public class Screen {
 
     @SubscribeEvent
     public void onMouseClicked(MouseButtonEvent e) {
+        if (!handleInput) return;
         Vector2i mousePosition = transformWindowToVirtual(window, e.x, e.y);
         for (int i = uis.size() - 1; i >= 0; i--) {
             if (isPointWithinRectangle(uis.get(i).getPosition(), mousePosition, uis.get(i).getEnd())) {
@@ -140,7 +142,18 @@ public class Screen {
         for (UI ui : uis) {
             ui.cleanup();
         }
+        setHandleInput(false);
     }
 
-    public void onOpen() {}
+    public void open() {
+        setHandleInput(true);
+    }
+    
+    public boolean isHandleInput() {
+        return handleInput;
+    }
+    
+    public void setHandleInput(boolean handleInput) {
+        this.handleInput = handleInput;
+    }
 }

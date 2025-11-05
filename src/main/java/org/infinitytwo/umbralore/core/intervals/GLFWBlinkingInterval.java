@@ -4,6 +4,7 @@ import org.infinitytwo.umbralore.core.Main; // Import your Main class for dispat
 import org.infinitytwo.umbralore.core.event.Event;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
+import org.infinitytwo.umbralore.core.manager.WorkerThreads;
 
 @Deprecated
 public class GLFWBlinkingInterval {
@@ -169,7 +170,7 @@ public class GLFWBlinkingInterval {
     @SubscribeEvent
     private void eventHandler(IntervalRun e) {
         // Dispatch the user-provided action to the main application thread for safe execution.
-        Main.dispatchTask(action);
+        WorkerThreads.dispatch(action);
     }
 
     // Event class for internal use

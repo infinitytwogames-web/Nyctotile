@@ -80,7 +80,7 @@ public class FontRenderer {
         program = new ShaderProgram(ShaderFiles.textVertex,ShaderFiles.textFragment);
         this.shaderProgramId = program.getProgramId();
         this.fontPath = fontPath;
-        this.logger = new Logger("FontRenderer");
+        this.logger = new Logger(FontRenderer.class);
         EventBus.connect(this);
         init();
     }
@@ -152,7 +152,7 @@ public class FontRenderer {
 
     public void renderText(Matrix4f projView, String text, float x, float y, float r, float g, float b) {
         if (!initialized) {
-            logger.fatal(new IllegalStateException("FontRenderer is not initialized"),"FontRenderer is not initialized");
+            logger.error("",new IllegalStateException("FontRenderer is not initialized"),"FontRenderer is not initialized");
             return;
         }
         glUseProgram(shaderProgramId);
@@ -263,7 +263,7 @@ public class FontRenderer {
     }
 
     public void renderText(Matrix4f projView, String text, Vector2i pos, RGB color) {
-        renderText(projView,text,pos.x,pos.y,color.red,color.green,color.blue);
+        renderText(projView,text,pos.x,pos.y,color.r(),color.g(),color.b());
     }
 
     public float getFontHeight() {

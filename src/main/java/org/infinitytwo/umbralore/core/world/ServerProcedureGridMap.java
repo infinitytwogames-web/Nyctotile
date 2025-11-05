@@ -1,5 +1,6 @@
 package org.infinitytwo.umbralore.core.world;
 
+import org.infinitytwo.umbralore.core.data.ChunkPos;
 import org.infinitytwo.umbralore.core.manager.WorkerThreads;
 import org.infinitytwo.umbralore.core.data.ChunkData;
 import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
@@ -19,7 +20,7 @@ public class ServerProcedureGridMap extends ServerGridMap {
     private final NoiseGenerationSettings dimension;
     protected long seed;
     private Random random;
-    protected Logger logger = new Logger("Procedure GridMap Generator");
+    protected Logger logger = new Logger(ServerProcedureGridMap.class);
     protected static AtomicInteger generationLimit = new AtomicInteger(8);
     protected static AtomicInteger current = new AtomicInteger(0);
     protected final List<ChunkData> chunkData = Collections.synchronizedList(new ArrayList<>());

@@ -28,7 +28,7 @@ public class InventoryGridViewer extends Grid {
     protected Factory factory;
 
     public InventoryGridViewer(Screen screen, FontRenderer fontRenderer, Window window, int columns) {
-        super(screen.getUIBatchRenderer());
+        super(screen);
         this.screen = screen;
         this.fontRenderer = fontRenderer;
         this.columns = columns;
@@ -36,7 +36,7 @@ public class InventoryGridViewer extends Grid {
     }
 
     public InventoryGridViewer(Screen screen, FontRenderer fontRenderer, Window window, Factory factory, int columns) {
-        super(screen.getUIBatchRenderer());
+        super(screen);
         this.screen = screen;
         this.fontRenderer = fontRenderer;
         this.window = window;
@@ -187,17 +187,5 @@ public class InventoryGridViewer extends Grid {
 
     public interface Factory {
         ItemSlot create(int slot, Item item, Screen screen, FontRenderer fontRenderer, Window window);
-    }
-
-    public static class Builder extends UIBuilder<InventoryGridViewer> {
-
-        public Builder() {
-            super(new InventoryGridViewer(null,null,null,0));
-        }
-
-        @Override
-        public UIBuilder<InventoryGridViewer> applyDefault() {
-            return this;
-        }
     }
 }

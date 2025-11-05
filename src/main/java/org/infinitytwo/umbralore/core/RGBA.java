@@ -1,7 +1,9 @@
 package org.infinitytwo.umbralore.core;
 
+import static org.joml.Math.clamp;
+
 public class RGBA extends RGB {
-    public float alpha = 0;
+    protected float alpha = 0;
 
     public RGBA(int red, int green, int blue, float alpha) {
         super(red, green, blue);
@@ -14,20 +16,27 @@ public class RGBA extends RGB {
 
     public RGBA(float red, float green, float blue, float alpha) {
         super(red,green,blue);
-        this.alpha = alpha;
+        this.alpha = clamp(0,1,alpha);
     }
 
     public RGBA(RGBA color) {
         super(color);
         alpha = color.alpha;
     }
-
+    
+    public static RGBA fromRGBA(int red, int green, int blue, float alpha) {
+        float r = (float) red / 255f;
+        float g = (float) green / 255f;
+        float b = (float) blue / 255f;
+        return new RGBA(r, g, b, alpha);
+    }
+    
     public float getAlpha() {
         return alpha;
     }
 
     public void setAlpha(float alpha) {
-        this.alpha = alpha;
+        this.alpha = clamp(0,1,alpha);
     }
 
     @Override

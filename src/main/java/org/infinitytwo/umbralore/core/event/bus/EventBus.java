@@ -10,7 +10,7 @@ import java.util.*;
 public class EventBus {
     private static final EventBus global = new EventBus("Global");
     private final Map<Class<?>, List<ListenerMethod>> subscribers = new HashMap<>();
-    private String name;
+    private final String name;
 
     public static void dispatch(Event event) {
         global.post(event);
@@ -78,7 +78,6 @@ public class EventBus {
 
     public void post(Event event) {
         Class<?> eventType = event.getClass();
-        System.out.println("Posting: "+eventType.getSimpleName());
 
         // Collect listeners for the event class AND all its superclasses/interfaces
         List<ListenerMethod> collectedMethods = new ArrayList<>();

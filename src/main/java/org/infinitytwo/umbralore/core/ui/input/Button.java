@@ -2,6 +2,7 @@ package org.infinitytwo.umbralore.core.ui.input;
 
 import org.infinitytwo.umbralore.core.RGB;
 import org.infinitytwo.umbralore.core.RGBA;
+import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.core.event.input.MouseHoverEvent;
 import org.infinitytwo.umbralore.core.renderer.UIBatchRenderer;
 import org.infinitytwo.umbralore.core.renderer.FontRenderer;
@@ -41,7 +42,7 @@ public abstract class Button extends Label {
                 Math.max(0, original.r() - d),
                 Math.max(0, original.g() - d),
                 Math.max(0, original.b() - d),
-                original.alpha
+                original.a()
         );
     }
 
@@ -50,7 +51,10 @@ public abstract class Button extends Label {
     public void onMouseHoverEnded() {
         backgroundColor.set(original);
     }
-
+    
+    @Override
+    public abstract void onMouseClicked(MouseButtonEvent e);
+    
     public static class ButtonBuilder<T extends Button> extends LabelBuilder<T> {
         public ButtonBuilder(UIBatchRenderer renderer, T element) {
             super(renderer, element);

@@ -1,9 +1,10 @@
 package org.infinitytwo.umbralore.core.network;
 
 import org.infinitytwo.umbralore.core.constants.LogicalSide;
+import org.infinitytwo.umbralore.core.constants.PacketType;
+import org.infinitytwo.umbralore.core.event.Event;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.network.NetworkFailure;
-import org.infinitytwo.umbralore.core.event.network.PacketReceived;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
@@ -22,23 +23,17 @@ import static org.infinitytwo.umbralore.core.constants.PacketType.*;
 
 public abstract class NetworkThread extends Thread {
     public final LogicalSide logicalSide;
-    protected static final int MAX_HEADER_SIZE = (2 * Integer.BYTES) + (2 * Short.BYTES) + 2;
+    public static final int MAX_DATAGRAM_SIZE = 1024;
+    public static final int PROTOCOL_MAX_HEADER_SIZE = (Integer.BYTES * 3) + (Short.BYTES * 2) + 1;
+    protected static final int HEADER_SIZE = PROTOCOL_MAX_HEADER_SIZE;
+    public static final int MAX_PAYLOAD_SIZE = MAX_DATAGRAM_SIZE - 1 - PROTOCOL_MAX_HEADER_SIZE;
     protected final int port;
     protected final EventBus eventBus;
     protected DatagramSocket socket;
-    // Tracks reliable packets *we* sent, waiting for ACK
     protected Map<Integer, List<Packet>> packetSent = new ConcurrentHashMap<>();
     protected volatile boolean close;
-
-    // Protocol Header Size: ID (4) + Nonce (4) + Index (2) + Total (2) + Type (1) = 13 bytes
-    public static final int PROTOCOL_HEADER_SIZE = (Integer.BYTES * 2) + (Short.BYTES * 2) + 1;
-
-    // Max size of a UDP datagram packet we will send (1024 is a safe default)
-    public static final int MAX_DATAGRAM_SIZE = 1024;
-
-    // Max payload we can send after accounting for the encryption flag (1 byte) and header (13 bytes)
-    public static final int MAX_PAYLOAD_SIZE = MAX_DATAGRAM_SIZE - 1 - PROTOCOL_HEADER_SIZE;
-
+    private boolean started;
+    
     public static List<byte[]> splitBytes(byte[] data, int maxChunkSize) {
         List<byte[]> chunks = new ArrayList<>();
         int length = data.length;
@@ -66,26 +61,25 @@ public abstract class NetworkThread extends Thread {
 
             // Use a buffer size that can safely handle the full MTU (1500)
             byte[] buffer = new byte[1500];
+            started = false;
 
             while (!close) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                if (!started) eventBus.post(new InitializedEvent());
+                started = true;
                 socket.receive(packet);
                 byte[] receivedData = Arrays.copyOf(packet.getData(), packet.getLength());
                 Packet parsedPacket = read(receivedData, packet.getAddress(), packet.getPort());
 
-                System.out.println("Received: "+parsedPacket.toString());
-
-                // preProcessPacket handles decryption/validation/auth state
-                // evaluate handles internal protocol packets (ACK/NACK/PING)
-                if (preProcessPacket(parsedPacket) && evaluate(parsedPacket)) {
-                    eventBus.post(new PacketReceived(parsedPacket, packet.getAddress()));
-                }
+                evaluate(parsedPacket);
+                preProcessPacket(parsedPacket);
             }
         } catch (Exception e) {
             if (!close) {
                 eventBus.post(new NetworkFailure(e));
+                e.printStackTrace();
             }
-            e.printStackTrace();
+            shutdown();
         } finally {
             if (socket != null && !socket.isClosed()) {
                 socket.close();
@@ -94,33 +88,36 @@ public abstract class NetworkThread extends Thread {
     }
 
     private boolean evaluate(Packet packet) {
-        int id = packet.id;
-
-        // FIXED: Removed the erroneous sentPackets/nonceDuplicate check here
-
-        if (packet.type == CMD_BYTE_DATA.getType()) {
-            // Data fragment - passes to event bus for PacketAssembly
-        } else if (packet.type == NACK.getType()) {
+        if (packet.type == CMD_BYTE_DATA.getByte()) {
+        
+        } else if (packet.type == NACK.getByte()) {
             byte[] payload = packet.payload;
             ByteBuffer buffer = ByteBuffer.allocate(payload.length);
             buffer.put(payload);
             buffer.position(0);
             
+            List<Packet> fragments = packetSent.get(packet.id);
+            
+            if (fragments == null) {
+                // The packet was already ACKed/removed. Ignore the late NACK.
+                System.out.println("Late NACK received for already completed packet ID: " + packet.id);
+                return false;
+            }
+            
             short length = buffer.getShort();
             for (int i = 0; i < length; i++) {
                 short index = buffer.getShort();
-                send(packetSent.get(packet.id).get(index),false);
+                resend(fragments.get(index), false);
             }
             
-            // NACKs are internal protocol and shouldn't hit the event bus
             return false;
-        } else if (packet.type == ACK.getType()) {
+        } else if (packet.type == ACK.getByte()) {
             // RECEIVED confirmation that our critical packet was successful
             packetSent.remove(packet.id); // Correctly removes the tracking entry
             
             // ACKs are internal protocol and shouldn't hit the event bus
             return false;
-        } else if (packet.type == COMMAND.getType()) {
+        } else if (packet.type == COMMAND.getByte()) {
             byte[] payload = packet.payload;
 
             String command = new String(payload, StandardCharsets.UTF_8);
@@ -135,12 +132,15 @@ public abstract class NetworkThread extends Thread {
     }
 
     public void pong(InetAddress address, int clientPort) {
-        send("pong", address, clientPort, UNENCRYPTED.getType(), false, false);
+        send("pong", address, clientPort, UNENCRYPTED.getByte(), false, false);
     }
 
     public void send(Packet packet, boolean isCritical) {
-        // FIXED: Ensures correct parameters are passed
-        send(packet.payload, packet.address, packet.port, packet.type, isCritical, true);
+        send(packet,isCritical,true);
+    }
+    
+    public void send(Packet packet, boolean isCritical, boolean encrypted) {
+        send(packet.payload, packet.address, packet.port, packet.type, isCritical, encrypted);
     }
 
     public void shutdown() {
@@ -152,7 +152,7 @@ public abstract class NetworkThread extends Thread {
     }
 
     public void send(@NotNull String msg, InetAddress clientAddress, int clientPort, boolean isCritical, boolean encrypted) {
-        send(msg.getBytes(StandardCharsets.UTF_8), clientAddress, clientPort, COMMAND.getType(), isCritical, encrypted);
+        send(msg.getBytes(StandardCharsets.UTF_8), clientAddress, clientPort, COMMAND.getByte(), isCritical, encrypted);
     }
 
     public void send(byte[] bytes, InetAddress address, int clientPort, byte type, boolean isCritical, boolean encrypted) {
@@ -162,36 +162,58 @@ public abstract class NetworkThread extends Thread {
     public void send(String msg, InetAddress address, int clientPort, byte type, boolean isCritical, boolean encrypted) {
         send(ThreadLocalRandom.current().nextInt(), msg.getBytes(StandardCharsets.UTF_8), address, clientPort, type, isCritical, encrypted);
     }
-
+    
+    // In org.infinitytwo.umbralore.core.network.NetworkThread
+    
+    public void resend(Packet packet, boolean encrypted) {
+        // 1. Get the original full packet bytes (Header and Payload)
+        byte[] fullPacket = packet.toBytes(); // Use the stored packet's serialization
+        
+        byte[] finalPayload;
+        
+        // 2. --- Encryption Logic ---
+        if (encrypted) {
+            byte[] encryptedData = encrypt(packet);
+            
+            finalPayload = ByteBuffer.allocate(1 + encryptedData.length)
+                    .put((byte) 1) // encryption flag
+                    .put(encryptedData)
+                    .array();
+        } else {
+            finalPayload = ByteBuffer.allocate(1 + fullPacket.length)
+                    .put((byte) 0) // no encryption
+                    .put(fullPacket)
+                    .array();
+        }
+        
+        DatagramPacket datagramPacket = new DatagramPacket(finalPayload, finalPayload.length, packet.address, packet.port);
+        
+        try {
+            socket.send(datagramPacket);
+        } catch (IOException e) {
+            eventBus.post(new NetworkFailure(e));
+        }
+    }
+    
     public void send(int id, byte[] bytes, InetAddress clientAddress, int clientPort, byte type, boolean isCritical, boolean isEncrypted) {
-        // FIXED: Use MAX_PAYLOAD_SIZE to ensure final datagram size is within MAX_DATAGRAM_SIZE
         List<byte[]> splitPayloads = splitBytes(bytes, MAX_PAYLOAD_SIZE);
         if (splitPayloads.isEmpty()) return;
-
+        
         List<Packet> packets = isCritical ? new ArrayList<>() : null;
-
+        
         for (int i = 0; i < splitPayloads.size(); i++) {
             byte[] payload = splitPayloads.get(i);
             int nonce = ThreadLocalRandom.current().nextInt();
-
-            // Use PROTOCOL_HEADER_SIZE
-            ByteBuffer buffer = ByteBuffer.allocate(PROTOCOL_HEADER_SIZE + payload.length);
-            buffer.putInt(id);                              // ID (int)
-            buffer.putInt(nonce);                           // Nonce (int)
-            buffer.putShort((short) i);                     // Index (short)
-            buffer.putShort((short) splitPayloads.size());  // Max (Total) (short)
-            buffer.put(type);                               // Type (byte)
-            buffer.put(payload);
-
-            byte[] fullPacket = buffer.array();
-
-            // Construct the internal Packet object
-            Packet sendPacket = new Packet(id, nonce, (short) i, (short) splitPayloads.size(), type, payload, clientAddress, clientPort);
+            
+            // 1. Construct the internal Packet object FIRST
+            Packet sendPacket = new Packet(id, nonce, payload.length, (short) i, (short) splitPayloads.size(), type, payload, clientAddress, clientPort);
             if (isCritical) packets.add(sendPacket);
-            System.out.println(sendPacket);
-
+            
+            // 2. Get the raw bytes from the Packet object
+            byte[] rawPacketData = sendPacket.toBytes();
+            
             byte[] finalPayload;
-
+            
             // --- Encryption Logic ---
             if (isEncrypted) {
                 byte[] encrypted = encrypt(sendPacket);
@@ -200,26 +222,26 @@ public abstract class NetworkThread extends Thread {
                         .put(encrypted)
                         .array();
             } else {
-                finalPayload = ByteBuffer.allocate(1 + fullPacket.length)
+                // Use the bytes generated from toBytes()
+                finalPayload = ByteBuffer.allocate(1 + rawPacketData.length)
                         .put((byte) 0) // no encryption
-                        .put(fullPacket)
+                        .put(rawPacketData)
                         .array();
             }
-
+            
             DatagramPacket datagramPacket = new DatagramPacket(finalPayload, finalPayload.length, clientAddress, clientPort);
-
+            
             try {
                 socket.send(datagramPacket);
             } catch (IOException e) {
                 eventBus.post(new NetworkFailure(e));
             }
         }
-
+        
         if (isCritical) {
             packetSent.put(id, packets);
         }
     }
-
     public Packet read(byte[] packet, InetAddress address, int port) throws IOException {
         if (packet == null || packet.length < 1) {
             throw new IOException("Packet too short or null.");
@@ -229,30 +251,29 @@ public abstract class NetworkThread extends Thread {
         byte[] decrypted = Arrays.copyOfRange(packet, 1, packet.length);
 
         if (encryptionFlag == 1) {
-            System.out.println("Decrypting");
             decrypted = decrypt(decrypted,address,port);
 
             // FIXED: Throw IOException on failure instead of RuntimeException
-            if (decrypted.length < PROTOCOL_HEADER_SIZE) {
+            if (decrypted.length < PROTOCOL_MAX_HEADER_SIZE) { // This now correctly uses 17
                 throw new IOException("Decryption failed or resulting packet is too small.");
             }
-        } else System.out.println("No Encryption");
+        }
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(decrypted);
         DataInputStream inStream = new DataInputStream(inputStream);
 
         int id = inStream.readInt();
         int nonce = inStream.readInt();
+        int expectedPayloadLength = inStream.readInt();
         short index = inStream.readShort();
         short total = inStream.readShort();
         byte type = inStream.readByte();
 
         // Read the remaining payload
-        int payloadLength = decrypted.length - PROTOCOL_HEADER_SIZE;
-        byte[] payload = new byte[payloadLength];
+        byte[] payload = new byte[expectedPayloadLength];
         inStream.readFully(payload);
 
-        return new Packet(id, nonce, index, total, type, payload, address, port);
+        return new Packet(id, nonce, payload.length, index, total, type, payload, address, port);
     }
 
     public int getPort() {
@@ -281,17 +302,24 @@ public abstract class NetworkThread extends Thread {
      * @param address The remote address.
      * @param clientPort The remote port.
      */
-    public void sendConfirmation(int id, InetAddress address, int clientPort) {
-        send(id, new byte[]{0,0,0,0}, address, clientPort, ACK.getType(), false, false);
+    public void sendACK(int id, InetAddress address, int clientPort) {
+        sendACK(id,address,clientPort,false);
     }
     
-    public void sendConfirmation(Packet packet) {
-        sendConfirmation(packet.id,packet.address,packet.port);
+    public void sendACK(int id, InetAddress address, int clientPort, boolean encrypted) {
+        send(id, new byte[]{0,0,0,0}, address, clientPort, ACK.getByte(), false, encrypted);
+    }
+    
+    public void sendACK(Packet packet) {
+        sendACK(packet,false);
+    }
+    
+    public void sendACK(Packet packet, boolean encrypted) {
+        sendACK(packet.id,packet.address,packet.port,encrypted);
     }
 
-    // FIXED: Renamed port parameter to clientPort for clarity
     public void sendRequest(int id, PacketResendData data, InetAddress address, int clientPort) {
-        ByteBuffer buffer = ByteBuffer.allocate(data.index().length * Short.BYTES);
+        ByteBuffer buffer = ByteBuffer.allocate(Short.BYTES + data.index().length * Short.BYTES);
 
         buffer.putShort((short) data.index().length);
         for (short index : data.index()) {
@@ -302,23 +330,40 @@ public abstract class NetworkThread extends Thread {
         buffer.flip();
         buffer.get(payload);
 
-        send(id, payload, address, clientPort, NACK.getType(), false, false);
+        send(id, payload, address, clientPort, NACK.getByte(), false, false);
     }
 
     public void ping(InetAddress address, int clientPort) {
-        send("ping",address, clientPort, UNENCRYPTED.getType(), false,false);
+        send("ping",address, clientPort, UNENCRYPTED.getByte(), false,false);
     }
 
     public void sendFailure(int id, String msg, InetAddress address, int clientPort) {
-        send(id,msg.getBytes(StandardCharsets.UTF_8), address, clientPort, FAILURE.getType(), false, false);
+        sendFailure(id,msg,address,clientPort,true);
     }
-
-    public record Packet(int id, int nonce, short index, short total, byte type, byte[] payload, InetAddress address, int port) {
+    
+    public void sendFailure(int id, String msg, InetAddress address, int clientPort, boolean encrypted) {
+        send(id,msg.getBytes(StandardCharsets.UTF_8), address, clientPort, FAILURE.getByte(), false, encrypted);
+    }
+    
+    public void sendFailure(Packet packet, String msg) {
+        sendFailure(packet,msg,true);
+    }
+    
+    public boolean isReady() {
+        return started;
+    }
+    
+    public void sendFailure(Packet packet, String msg, boolean encrypted) {
+        sendFailure(packet.id,msg,packet.address,packet.port,encrypted);
+    }
+    
+    public record Packet(int id, int nonce, int length, short index, short total, byte type, byte[] payload, InetAddress address, int port) {
         public byte[] toBytes() {
-            ByteBuffer b = ByteBuffer.allocate(MAX_HEADER_SIZE + payload.length);
+            ByteBuffer b = ByteBuffer.allocate(HEADER_SIZE + payload.length);
 
             b.putInt(id);
             b.putInt(nonce);
+            b.putInt(payload.length);
             b.putShort(index);
             b.putShort(total);
             b.put(type);
@@ -334,11 +379,14 @@ public abstract class NetworkThread extends Thread {
         @NotNull
         @Override
         public String toString() {
-            return "Packet(id: "+id+", Nonce: "+nonce+", Packet: "+(index+1)+"/"+total+", "+type+", Address: "+address.toString()+", Port: "+port;
+            return "Packet(id: "+id+", Nonce: "+nonce+", Packet: "+(index+1)+"/"+total+", Type: "+ PacketType.fromId(type) +", Address: "+address.toString()+", Port: "+port;
         }
     }
+    
+    public static class InitializedEvent extends Event {}
 
     protected abstract byte[] encrypt(Packet packet);
     protected abstract byte[] decrypt(byte[] data, java.net.InetAddress address, int port);
     protected abstract boolean preProcessPacket(Packet packet);
+    
 }

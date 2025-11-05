@@ -27,7 +27,7 @@ public class TextBatchRenderer {
     private final FloatBuffer vertexBuffer;
     private final int vaoId, vboId;
     private int glyphCount = 0;
-    private final Logger logger = new Logger("TextBatchRenderer");
+    private final Logger logger = new Logger(TextBatchRenderer.class);
     private final Matrix4f proj = new Matrix4f();
     private RGB color;
 

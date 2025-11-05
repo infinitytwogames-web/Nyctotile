@@ -23,21 +23,16 @@ public class ChunkData {
     public static final int SIZE_Y = 128;
     public static final int SIZE_X = SIZE;
     public static final int SIZE_Z = SIZE;
-    private transient GridMap map;
+    protected transient GridMap map;
     public Vector2i position;
-    private int[] blocks = new int[SIZE * SIZE_Y * SIZE];
+    protected int[] blocks = new int[SIZE * SIZE_Y * SIZE];
     private final Map<Vector3i, byte[]> blockData = new HashMap<>();
-
-    public ChunkData(Vector2i position, GridMap map) {
-        this.position = position;
-        this.map = map;
+    
+    public ChunkData(ChunkPos chunkPos) {
+        this.position = new Vector2i();
+        position.set(chunkPos.x(),chunkPos.z());
     }
-
-    public ChunkData(GridMap.ChunkPos position, GridMap map) {
-        this.position = new Vector2i(position.x(),position.z());
-        this.map = map;
-    }
-
+    
     public static ChunkData of(byte[] data) throws IOException {
         return unserialize(data);
     }
@@ -60,10 +55,6 @@ public class ChunkData {
     public byte[] getData(Vector3i pos) throws IllegalChunkAccessException {
         if (isInBounds(pos.x,pos.y,pos.z)) return blockData.getOrDefault(pos, new byte[0]);
         else throw new IllegalChunkAccessException("Position ("+pos.x+", "+pos.y+", "+pos.z+") is out of bounds");
-    }
-
-    public ChunkData(ServerGridMap.ChunkPos position) {
-        this.position = new Vector2i(position.x(),position.z());
     }
 
     public ChunkData(Vector2i pos) {

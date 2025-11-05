@@ -12,7 +12,6 @@ import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.lwjgl.glfw.*;
 import org.lwjgl.opengl.GL;
-import org.lwjgl.opengl.GLCapabilities;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
@@ -24,13 +23,14 @@ import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.GL_TRUE;
+import static org.lwjgl.opengl.GL11.glClearColor;
 
 public class Window {
     private long window = 0;
     private String title;
     private int width;
     private int height;
-    private final Logger logger = new Logger("Window");
+    private final Logger logger = new Logger(Window.class);
 
     private GLFWFramebufferSizeCallback framebufferSizeCallback;
     private GLFWKeyCallback glfwKeyCallback;
@@ -48,6 +48,7 @@ public class Window {
 
     public void setTitle(String title) {
         this.title = title;
+        GLFW.glfwSetWindowTitle(window,title);
     }
 
     public int getWidth() {
@@ -129,7 +130,7 @@ public class Window {
     }
 
     public void initOpenGL() {
-        GLCapabilities capabilities = GL.createCapabilities();
+        GL.createCapabilities();
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glViewport(0, 0, width, height);
     }
@@ -142,11 +143,13 @@ public class Window {
         if (glfwKeyCallback != null) glfwKeyCallback.free();
         if (glfwMouseButtonCallback != null) glfwMouseButtonCallback.free();
         if (glfwCharCallback != null) glfwCharCallback.free();
-        if (framebufferSizeCallback != null) {
-            framebufferSizeCallback.free();
-        }
-
+        if (framebufferSizeCallback != null) framebufferSizeCallback.free();
+        
+        
         GLFW.glfwDestroyWindow(window);
+    }
+    
+    public static void terminateGLFW() {
         GLFW.glfwTerminate();
     }
 
@@ -240,5 +243,13 @@ public class Window {
 
         this.width = width[0];
         this.height = height[0];
+    }
+    
+    public void close() {
+        glfwSetWindowShouldClose(window,true);
+    }
+    
+    public void setBackgroundColor(RGBA color) {
+        glClearColor(color.red,color.green,color.blue,color.alpha);
     }
 }

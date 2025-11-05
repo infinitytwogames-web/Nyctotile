@@ -15,7 +15,7 @@ import java.nio.ByteBuffer;
 import java.util.Set;
 
 public final class BlockDataReader {
-    private final Logger logger = new Logger("BlockDataReader");
+    private final Logger logger = new Logger(BlockDataReader.class);
     private final BlockRegistry registry;
 
     public BlockDataReader(BlockRegistry registry) {

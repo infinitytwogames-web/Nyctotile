@@ -1,22 +1,27 @@
 package org.infinitytwo.umbralore.core.ui.display;
 
+import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
+import org.infinitytwo.umbralore.core.event.input.MouseHoverEvent;
 import org.infinitytwo.umbralore.core.renderer.UIBatchRenderer;
 import org.infinitytwo.umbralore.core.ui.UI;
 import org.infinitytwo.umbralore.core.ui.builder.UIBuilder;
+import org.joml.Vector2i;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public abstract class Grid extends UI {
+public class Grid extends UI {
     protected Map<UI, Cell> uis = new LinkedHashMap<>();
     protected int columns;
     protected int rows;
     protected int space;
     protected int padding;
-    protected int cellSize;
+    protected Vector2i cellSize = new Vector2i();
+    protected Screen screen;
 
-    protected Grid(UIBatchRenderer renderer) {
-        super(renderer);
+    public Grid(Screen renderer) {
+        super(renderer.getUIBatchRenderer());
+        screen = renderer;
     }
 
     public int getColumns() {
@@ -55,7 +60,27 @@ public abstract class Grid extends UI {
         super.setSize(width, height);
         layoutDirty = true;
     }
-
+    
+    @Override
+    public void onMouseClicked(MouseButtonEvent e) {
+    
+    }
+    
+    @Override
+    public void onMouseHover(MouseHoverEvent e) {
+    
+    }
+    
+    @Override
+    public void onMouseHoverEnded() {
+    
+    }
+    
+    @Override
+    public void cleanup() {
+    
+    }
+    
     @Override
     public void draw() {
         if (layoutDirty) {
@@ -69,16 +94,15 @@ public abstract class Grid extends UI {
 
             ui.setSize(cellSize);
             ui.setOffset(
-                    (cell.x * space) + (cell.x * (cellSize)) + padding,
-                    (cell.y * space) + (cell.y * (cellSize)) + padding
+                    (cell.x * space) + (cell.x * (cellSize.x)) + padding,
+                    (cell.y * space) + (cell.y * (cellSize.y)) + padding
             );
-
-            ui.draw();
         }
     }
 
     public int put(UI ui, int row, int column) {
         ui.setParent(this);
+        screen.register(ui);
 
         uis.put(ui, new Cell(column, row)); // column = x, row = y
         return uis.size() - 1;
@@ -86,13 +110,17 @@ public abstract class Grid extends UI {
 
     public void updateSize() {
         super.setSize(
-                (columns * space) + (columns * (cellSize)) + padding,
-                (rows * space) + (rows * (cellSize)) + padding
+                (columns * space) + (columns * (cellSize.x)) + padding,
+                (rows * space) + (rows * (cellSize.y)) + padding
         );
     }
 
     public void setCellSize(int size) {
-        cellSize = size;
+        setCellSize(size,size);
+    }
+    
+    public void setCellSize(int width, int height) {
+        cellSize.set(width,height);
     }
 
     protected record Cell(int x, int y) {
@@ -100,7 +128,7 @@ public abstract class Grid extends UI {
 
     public static class Builder<T extends Grid> extends UIBuilder<T> {
 
-        public Builder(UIBatchRenderer renderer, T element) {
+        public Builder(T element) {
             super(element);
         }
 
@@ -115,7 +143,7 @@ public abstract class Grid extends UI {
         }
 
         public Builder<T> cellSize(int size) {
-            ui.cellSize = size;
+            ui.cellSize.set(size);
             return this;
         }
 
@@ -130,7 +158,12 @@ public abstract class Grid extends UI {
         }
 
         @Override
-        public UIBuilder<T> applyDefault() {
+        public Builder<T> applyDefault() {
+            return this;
+        }
+        
+        public Builder<T> cellSize(int width, int height) {
+            ui.setCellSize(width,height);
             return this;
         }
     }

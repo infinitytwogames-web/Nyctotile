@@ -57,6 +57,7 @@ public final class PacketAssembly {
         NetworkThread.Packet newPacket = new NetworkThread.Packet(
                 packetId,
                 firstPacket.nonce(),
+                finalPayload.length,
                 (short) 0,
                 (short) 1, // Total is 1 for an assembled packet
                 firstPacket.type(),
@@ -148,5 +149,9 @@ public final class PacketAssembly {
         
         // Return the fragment at index 0, which holds the original metadata
         return p.get((short) 0);
+    }
+    
+    public void addPacket(NetworkThread.Packet packet) {
+        addPacket(packet.id(),packet);
     }
 }

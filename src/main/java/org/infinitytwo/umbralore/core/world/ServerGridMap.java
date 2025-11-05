@@ -3,11 +3,12 @@ package org.infinitytwo.umbralore.core.world;
 import org.infinitytwo.umbralore.core.data.Block;
 import org.infinitytwo.umbralore.block.BlockType;
 import org.infinitytwo.umbralore.core.data.ChunkData;
+import org.infinitytwo.umbralore.core.data.ChunkPos;
+import org.infinitytwo.umbralore.core.data.RaycastResult;
 import org.infinitytwo.umbralore.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.umbralore.core.exception.IllegalDataTypeException;
 import org.infinitytwo.umbralore.core.data.io.BlockDataReader;
 import org.infinitytwo.umbralore.core.registry.BlockRegistry;
-import org.infinitytwo.umbralore.core.renderer.Chunk;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
 import org.joml.Vector3i;
@@ -18,10 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static org.infinitytwo.umbralore.core.data.ChunkData.SIZE_X;
-import static org.infinitytwo.umbralore.core.data.ChunkData.SIZE_Z;
-
-public class ServerGridMap {
+public class ServerGridMap extends GMap {
     protected final ConcurrentHashMap<ChunkPos, ChunkData> chunks = new ConcurrentHashMap<>();
     protected boolean isReady = false;
     protected final BlockRegistry registry;
@@ -30,42 +28,7 @@ public class ServerGridMap {
         this.registry = registry;
     }
 
-    public static Vector2i convertToChunkPosition(Vector3i block) {
-        return new Vector2i(
-                Math.floorDiv(block.x, SIZE_X),
-                Math.floorDiv(block.z, SIZE_Z)
-        );
-    }
-
-    public static Vector2i convertToChunkPosition(int x, int z) {
-        return new Vector2i(
-                Math.floorDiv(x, SIZE_X),
-                Math.floorDiv(z, SIZE_Z)
-        );
-    }
-
-    public static Vector3i convertToLocalChunk(int worldX, int worldY, int worldZ) {
-        int localX = Math.floorMod(worldX, SIZE_X);
-        int localZ = Math.floorMod(worldZ, SIZE_Z);
-        return new Vector3i(localX, worldY, localZ);
-    }
-
-    public static Vector2i worldToChunk(int worldX, int worldZ) {
-        int chunkX = Math.floorDiv(worldX, SIZE_X);
-        int chunkZ = Math.floorDiv(worldZ, SIZE_Z);
-        return new Vector2i(chunkX, chunkZ);
-    }
-
-    public static ChunkPos worldToChunkPos(int worldX, int worldZ) {
-        int chunkX = Math.floorDiv(worldX, SIZE_X);
-        int chunkZ = Math.floorDiv(worldZ, SIZE_Z);
-        return new ChunkPos(chunkX, chunkZ);
-    }
-
-    public static Vector3i convertToWorldPosition(Vector2i chunk, Vector3i localChunkPos) {
-        return localChunkPos.add((chunk.x * SIZE_X),0,(chunk.y * SIZE_Z));
-    }
-
+    @Override
     public Block getBlock(int x, int y, int z) {
         Vector2i p = convertToChunkPosition(x,z);
         ChunkPos pos = new ChunkPos(p.x, p.y);
@@ -77,6 +40,7 @@ public class ServerGridMap {
         return null;
     }
 
+    @Override
     public void removeBlock(int x, int y, int z) throws IllegalChunkAccessException {
         Vector2i p = convertToChunkPosition(x,z);
         ChunkPos pos = new ChunkPos(p.x, p.y);
@@ -86,6 +50,7 @@ public class ServerGridMap {
         } else throw new IllegalChunkAccessException("Cannot modify a non-existing chunk. "+p);
     }
 
+    @Override
     public void removeBlock(Vector3i pos) throws IllegalChunkAccessException {
         removeBlock(pos.x,pos.y, pos.z);
     }
@@ -94,37 +59,39 @@ public class ServerGridMap {
         chunks.put(new ChunkPos(chunk.getPosition().x,chunk.getPosition().y),chunk);
     }
 
+    @Override
     public List<ChunkPos> getSurroundingChunks(ChunkPos center, int radius) {
         List<ChunkPos> result = new ArrayList<>();
         for (int dx = -radius; dx <= radius; dx++) {
             for (int dz = -radius; dz <= radius; dz++) {
-                result.add(new ChunkPos(center.x + dx, center.z + dz));
+                result.add(new ChunkPos(center.x() + dx, center.z() + dz));
             }
         }
         return result;
     }
 
+    @Override
     public void insertData(Vector3i pos, byte[] data) throws IllegalChunkAccessException {
         chunks.get(worldToChunkPos(pos.x, pos.z)).setData(pos, data);
     }
 
+    @Override
     public byte[] getData(Vector3i pos) throws IllegalChunkAccessException {
         return chunks.get(worldToChunkPos(pos.x, pos.z)).getData(pos);
     }
 
+    @Override
     public Object getData(Vector3i pos, BlockDataReader reader, String name) throws IllegalChunkAccessException, IllegalDataTypeException {
         ChunkData chunk = chunks.get(worldToChunkPos(pos.x, pos.z));
         return reader.getData(chunk.getBlockId(pos.x,pos.y,pos.z), chunk.getData(pos), name);
     }
 
+    @Override
     public BlockType getBlockType(Vector3i pos) {
         return getBlock(pos.x,pos.y,pos.z).getType();
     }
-
-    public boolean isReady() {
-        return isReady;
-    }
-
+    
+    @Override
     public RaycastResult raycast(Vector3f origin, Vector3f direction, float maxDistance) {
         Vector3f dir = new Vector3f(direction).normalize(); // Normalized direction
         final float EPSILON = 1e-6f;
@@ -176,6 +143,7 @@ public class ServerGridMap {
         return null;
     }
 
+    @Override
     public void setBlock(Block block) throws IllegalChunkAccessException {
         Vector3i blockPos = block.getPosition();
         Vector2i p = convertToChunkPosition(blockPos);
@@ -185,11 +153,7 @@ public class ServerGridMap {
             chunks.get(pos).setBlock(convertToLocalChunk(blockPos), registry.getId(block.getType().getId()));
         } else throw new IllegalChunkAccessException("Cannot modify a non-existing chunk. "+p);
     }
-
-    private Vector3i convertToLocalChunk(Vector3i blockPos) {
-        return convertToLocalChunk(blockPos.x, blockPos.y, blockPos.z);
-    }
-
+    
     public ChunkData getChunk(Vector2i pos) throws IllegalChunkAccessException {
         ChunkData data = chunks.get(new ChunkPos(pos.x, pos.y));
         if (data == null) throw new IllegalChunkAccessException("Cannot access a non-existing chunk at (" + pos.x +", "+pos.y+")");
@@ -199,14 +163,4 @@ public class ServerGridMap {
     public Collection<ChunkData> getChunks() {
         return Collections.unmodifiableCollection(chunks.values());
     }
-
-//    public static ServerGridMap create(GridMap map) {
-//
-//        for (Chunk chunk : map.getAllChunks()) {
-//            chunk.getBlockData()
-//        }
-//    }
-
-    public record RaycastResult(Vector3i blockPos, Vector3i hitNormal){}
-    public record ChunkPos(int x, int z) { }
 }

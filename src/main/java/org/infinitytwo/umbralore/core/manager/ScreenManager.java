@@ -22,14 +22,27 @@ public class ScreenManager {
      */
     public static void pushScreen(String name) {
         Screen screen = screens.get(name);
-        if (screen == null) {
-            throw new UnknownRegistryException("The screen \"" + name + "\" is not found in registry.");
-        }
-
+        if (screen == null)
+            throw new UnknownRegistryException("Screen \"" + name + "\" not found in registry.");
+        
+        if (activeScreens.contains(screen))
+            return; // already active — ignore or bring to front
+        
         activeScreens.push(screen);
-        screen.onOpen();
+        screen.open();
     }
-
+    
+    public static void setScreen(String name) {
+        while (!activeScreens.isEmpty()) {
+            activeScreens.pop().close();
+        }
+        pushScreen(name);
+    }
+    
+    public static Screen getCurrent() {
+        return activeScreens.isEmpty() ? null : activeScreens.peek();
+    }
+    
     /**
      * Removes the top screen from the stack and notifies it that it's closing.
      */

@@ -37,6 +37,8 @@ dependencies {
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
 
+    implementation 'ch.qos.logback:logback-classic:1.4.11'
+
 //    runtimeOnly platform("org.lwjgl:lwjgl-bom:${lwjglVersion}:natives-${os}")
     runtimeOnly "org.lwjgl:lwjgl::natives-${os}"
     runtimeOnly "org.lwjgl:lwjgl-glfw::natives-${os}"

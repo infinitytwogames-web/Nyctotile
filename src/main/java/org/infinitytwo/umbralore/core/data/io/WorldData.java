@@ -6,6 +6,7 @@ import org.infinitytwo.umbralore.core.entity.Entity;
 import org.infinitytwo.umbralore.core.manager.EntityManager;
 import org.infinitytwo.umbralore.core.manager.World;
 import org.infinitytwo.umbralore.core.registry.*; // Import the base Registry class
+import org.infinitytwo.umbralore.core.world.GridMap;
 import org.infinitytwo.umbralore.core.world.ServerProcedureGridMap;
 import org.infinitytwo.umbralore.core.world.dimension.Dimension;
 import org.joml.Vector2i;
@@ -18,14 +19,9 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Stream;
 
-// Assuming SIZE is available from ChunkData or a global constant
-// The user provided the file without ChunkData.SIZE import, so we assume it's defined elsewhere or removed the line:
-// import static org.infinitytwo.umbralore.core.data.ChunkData.SIZE;
-
 public class WorldData {
     private static final ArrayList<String> dirsNeeded = new ArrayList<>();
-    // Assumed ChunkData.SIZE for Region class is 16 based on prior context.
-    private static final int CHUNK_SIZE = 16;
+    public static final int CHUNK_SIZE = 16;
 
     // World
     public String name;
@@ -148,8 +144,6 @@ public class WorldData {
         }
     }
 
-    // --- CRITICAL FIX 2: REGION LOADING (unserialize signature) ---
-
     public static void load(Path path) throws IOException {
         RegistryDeserializer deserializer = new RegistryDeserializer();
         WorldData gameData = new WorldData();
@@ -238,12 +232,8 @@ public class WorldData {
                             for (int i = 0; i < chunkCount; i++) {
                                 // ChunkData.unserialize must now accept and consume from the ByteBuffer
                                 ChunkData chunk = ChunkData.unserialize(rBuffer);
-                                if (chunk != null) { // Added null check for robustness
-                                    dim.getWorld().addChunk(chunk);
-                                } else {
-                                    System.err.println("Warning: Region file " + file.getName() + " truncated or corrupted at chunk " + i);
-                                    break;
-                                }
+                                // Added null check for robustness
+                                dim.getWorld().addChunk(chunk);
                             }
                         }
                     }
