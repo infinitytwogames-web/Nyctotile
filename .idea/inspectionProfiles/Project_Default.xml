@@ -4,7 +4,14 @@
     <inspection_tool class="AutoCloseableResource" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="METHOD_MATCHER_CONFIG" value="java.util.Formatter,format,java.io.Writer,append,com.google.common.base.Preconditions,checkNotNull,org.hibernate.Session,close,java.io.PrintWriter,printf,java.io.PrintStream,printf,java.lang.foreign.Arena,ofAuto,java.lang.foreign.Arena,global,org.lwjgl.assimp.AIMesh,create" />
     </inspection_tool>
-    <inspection_tool class="BigDecimalMethodWithoutRoundingCalled" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="CallToSimpleGetterInClass" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoreGetterCallsOnOtherObjects" value="false" />
+      <option name="onlyReportPrivateGetter" value="true" />
+    </inspection_tool>
+    <inspection_tool class="CallToSimpleSetterInClass" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoreSetterCallsOnOtherObjects" value="false" />
+      <option name="onlyReportPrivateSetter" value="true" />
+    </inspection_tool>
     <inspection_tool class="CloneableClassInSecureContext" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="CommentedOutCode" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="DollarSignInName" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -16,15 +23,13 @@
     <inspection_tool class="MissortedModifiers" enabled="true" level="INFORMATION" enabled_by_default="true" editorAttributes="TYPO">
       <option name="m_requireAnnotationsFirst" value="true" />
     </inspection_tool>
-    <inspection_tool class="NestingDepth" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="m_limit" value="5" />
-    </inspection_tool>
-    <inspection_tool class="NonCommentSourceStatements" enabled="false" level="WARNING" enabled_by_default="false">
+    <inspection_tool class="NonCommentSourceStatements" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES">
       <option name="m_limit" value="45" />
     </inspection_tool>
+    <inspection_tool class="OctalAndDecimalIntegersMixed" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PublicStaticArrayField" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PublicStaticCollectionField" enabled="true" level="WARNING" enabled_by_default="true" />
-    <inspection_tool class="ReturnOfInnerClass" enabled="false" level="WARNING" enabled_by_default="false">
+    <inspection_tool class="ReturnOfInnerClass" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoreNonPublic" value="true" />
     </inspection_tool>
     <inspection_tool class="RuntimeExecWithNonConstantString" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -37,6 +42,5 @@
     <inspection_tool class="ThrownExceptionsPerMethod" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="m_limit" value="3" />
     </inspection_tool>
-    <inspection_tool class="ZeroLengthArrayInitialization" enabled="true" level="WARNING" enabled_by_default="true" />
   </profile>
 </component>

@@ -42,7 +42,28 @@ public class Outline {
         GL15.glBindBuffer(GL15.GL_ARRAY_BUFFER, 0);
         GL30.glBindVertexArray(0);
     }
-
+    
+    public Outline() {
+        this(new ShaderProgram(
+                """
+                        #version 330 core
+                        layout (location = 0) in vec3 position;
+                        uniform mat4 model, view, projection;
+                        void main() {
+                            gl_Position = projection * view * model * vec4(position, 1.0);
+                        }
+                        """,
+                """
+                        #version 330 core
+                        out vec4 FragColor;
+                        uniform vec3 outlineColor;
+                        void main() {
+                            FragColor = vec4(outlineColor, 1.0);
+                        }
+                        """
+        ));
+    }
+    
     public void render(Vector3f blockPos, Camera camera, Window window, Vector3f color) {
         GL11.glPolygonMode(GL11.GL_FRONT_AND_BACK, GL11.GL_LINE);
 //        GL11.glDisable(GL11.GL_DEPTH_TEST);

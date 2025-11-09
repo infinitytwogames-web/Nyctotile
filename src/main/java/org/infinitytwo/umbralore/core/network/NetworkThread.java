@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static org.infinitytwo.umbralore.core.constants.PacketType.*;
 
+@Deprecated
 public abstract class NetworkThread extends Thread {
     public final LogicalSide logicalSide;
     public static final int MAX_DATAGRAM_SIZE = 1024;
@@ -71,9 +72,12 @@ public abstract class NetworkThread extends Thread {
                 byte[] receivedData = Arrays.copyOf(packet.getData(), packet.getLength());
                 Packet parsedPacket = read(receivedData, packet.getAddress(), packet.getPort());
 
-                evaluate(parsedPacket);
-                preProcessPacket(parsedPacket);
+                System.out.println("Received: "+parsedPacket);
+                if (preProcessPacket(parsedPacket)) {
+                    evaluate(parsedPacket);
+                }
             }
+            
         } catch (Exception e) {
             if (!close) {
                 eventBus.post(new NetworkFailure(e));
@@ -89,17 +93,15 @@ public abstract class NetworkThread extends Thread {
 
     private boolean evaluate(Packet packet) {
         if (packet.type == CMD_BYTE_DATA.getByte()) {
+            return true; // Pass to NetworkHandler for assembly
+        }
         
-        } else if (packet.type == NACK.getByte()) {
-            byte[] payload = packet.payload;
-            ByteBuffer buffer = ByteBuffer.allocate(payload.length);
-            buffer.put(payload);
-            buffer.position(0);
+        if (packet.type == NACK.getByte()) {
+            ByteBuffer buffer = ByteBuffer.wrap(packet.payload);
             
             List<Packet> fragments = packetSent.get(packet.id);
             
             if (fragments == null) {
-                // The packet was already ACKed/removed. Ignore the late NACK.
                 System.out.println("Late NACK received for already completed packet ID: " + packet.id);
                 return false;
             }
@@ -107,16 +109,22 @@ public abstract class NetworkThread extends Thread {
             short length = buffer.getShort();
             for (int i = 0; i < length; i++) {
                 short index = buffer.getShort();
-                resend(fragments.get(index), false);
+                
+                // CRITICAL FIX: The index in fragments is 0-based. The NACK payload holds 0-based indices.
+                if (index >= 0 && index < fragments.size()) {
+                    resend(fragments.get(index), true); // Resend with encryption assumed
+                } else {
+                    System.err.println("NACK contained invalid fragment index: " + index + " for ID: " + packet.id);
+                }
             }
-            
             return false;
-        } else if (packet.type == ACK.getByte()) {
-            // RECEIVED confirmation that our critical packet was successful
-            packetSent.remove(packet.id); // Correctly removes the tracking entry
-            
-            // ACKs are internal protocol and shouldn't hit the event bus
+        }
+        
+        if (packet.type == ACK.getByte()) {
+            // ACK received, stop tracking the reliable packet
+            packetSent.remove(packet.id);
             return false;
+            
         } else if (packet.type == COMMAND.getByte()) {
             byte[] payload = packet.payload;
 
@@ -163,8 +171,6 @@ public abstract class NetworkThread extends Thread {
         send(ThreadLocalRandom.current().nextInt(), msg.getBytes(StandardCharsets.UTF_8), address, clientPort, type, isCritical, encrypted);
     }
     
-    // In org.infinitytwo.umbralore.core.network.NetworkThread
-    
     public void resend(Packet packet, boolean encrypted) {
         // 1. Get the original full packet bytes (Header and Payload)
         byte[] fullPacket = packet.toBytes(); // Use the stored packet's serialization
@@ -201,12 +207,12 @@ public abstract class NetworkThread extends Thread {
         
         List<Packet> packets = isCritical ? new ArrayList<>() : null;
         
-        for (int i = 0; i < splitPayloads.size(); i++) {
+        for (short i = 0; i < splitPayloads.size(); i++) {
             byte[] payload = splitPayloads.get(i);
             int nonce = ThreadLocalRandom.current().nextInt();
             
             // 1. Construct the internal Packet object FIRST
-            Packet sendPacket = new Packet(id, nonce, payload.length, (short) i, (short) splitPayloads.size(), type, payload, clientAddress, clientPort);
+            Packet sendPacket = new Packet(id, nonce, payload.length, i, (short) splitPayloads.size(), type, payload, clientAddress, clientPort);
             if (isCritical) packets.add(sendPacket);
             
             // 2. Get the raw bytes from the Packet object
@@ -215,13 +221,16 @@ public abstract class NetworkThread extends Thread {
             byte[] finalPayload;
             
             // --- Encryption Logic ---
+            System.out.println(isEncrypted);
             if (isEncrypted) {
                 byte[] encrypted = encrypt(sendPacket);
+                
                 finalPayload = ByteBuffer.allocate(1 + encrypted.length)
                         .put((byte) 1) // encryption flag
                         .put(encrypted)
                         .array();
             } else {
+                System.out.println("NO ENCRYPTION");
                 // Use the bytes generated from toBytes()
                 finalPayload = ByteBuffer.allocate(1 + rawPacketData.length)
                         .put((byte) 0) // no encryption
@@ -357,7 +366,23 @@ public abstract class NetworkThread extends Thread {
         sendFailure(packet.id,msg,packet.address,packet.port,encrypted);
     }
     
+    @Deprecated
+    public boolean isSelfPacket(Packet packet) {
+        // 1. Check if the source address is the same as the local address
+        boolean isLocalAddress = packet.address().equals(socket.getLocalAddress()) || packet.address().isLoopbackAddress();
+        
+        // 2. Check if the source port is the same as the local listening port
+        boolean isLocalPort = packet.port() == socket.getLocalPort();
+        
+        return isLocalAddress && isLocalPort;
+    }
+    
+    @Deprecated
     public record Packet(int id, int nonce, int length, short index, short total, byte type, byte[] payload, InetAddress address, int port) {
+        public static Packet create(byte[] payload, byte type, InetAddress address, int port) {
+            return new Packet(ThreadLocalRandom.current().nextInt(), ThreadLocalRandom.current().nextInt(), payload.length, (short) 0, (short) 1, type, payload, address, port);
+        }
+        
         public byte[] toBytes() {
             ByteBuffer b = ByteBuffer.allocate(HEADER_SIZE + payload.length);
 
@@ -379,14 +404,14 @@ public abstract class NetworkThread extends Thread {
         @NotNull
         @Override
         public String toString() {
-            return "Packet(id: "+id+", Nonce: "+nonce+", Packet: "+(index+1)+"/"+total+", Type: "+ PacketType.fromId(type) +", Address: "+address.toString()+", Port: "+port;
+            return "Packet(id: "+id+", Nonce: "+nonce+", Packet: "+(index+1)+"/"+total+", Type: "+ PacketType.fromId(type) +", Address: "+address.toString()+", Port: "+port+")"; // SIR IT STARTS FROM 0
         }
     }
     
+    @Deprecated
     public static class InitializedEvent extends Event {}
 
     protected abstract byte[] encrypt(Packet packet);
     protected abstract byte[] decrypt(byte[] data, java.net.InetAddress address, int port);
     protected abstract boolean preProcessPacket(Packet packet);
-    
 }

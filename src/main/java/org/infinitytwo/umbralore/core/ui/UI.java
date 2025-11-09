@@ -4,7 +4,6 @@ import org.infinitytwo.umbralore.core.Display;
 import org.infinitytwo.umbralore.core.RGBA;
 import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.core.event.input.MouseHoverEvent;
-import org.infinitytwo.umbralore.core.logging.Logger;
 import org.infinitytwo.umbralore.core.renderer.UIBatchRenderer;
 import org.infinitytwo.umbralore.core.ui.component.Component;
 import org.infinitytwo.umbralore.core.ui.position.Anchor;
@@ -52,18 +51,17 @@ public abstract class UI {
     public Vector2i getPosition() {
         int xa, ya;
         Vector2i o;
-
+        
         if (parent == null) {
             xa = (int) (Display.width * anchor.x);
             ya = (int) (Display.height * anchor.y);
-            o = offset;
         } else {
             Vector2i parentOrigin = parent.getPosition(); // Get parent's calculated screen coordinates
             xa = parentOrigin.x + (int) (parent.width * anchor.x); // Anchor relative to parent's size
             ya = parentOrigin.y + (int) (parent.height * anchor.y);
-            o = offset; // Use only this element's local offset
         }
-
+        o = offset;
+        
         int xp = (int) (width * pivot.x());
         int yp = (int) (height * pivot.y());
 
@@ -151,7 +149,7 @@ public abstract class UI {
     }
 
     public void setBackgroundColor(RGBA backgroundColor) {
-        this.backgroundColor.set(backgroundColor);
+        setBackgroundColor(backgroundColor.r(), backgroundColor.g(), backgroundColor.b(), backgroundColor.a());
     }
 
     public void setBackgroundColor(float r, float g, float b, float a) {

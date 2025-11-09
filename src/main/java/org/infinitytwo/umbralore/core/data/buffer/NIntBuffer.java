@@ -58,6 +58,7 @@ import static org.lwjgl.system.MemoryUtil.*;
  * @see IntBuffer
  * @see org.lwjgl.system.MemoryUtil
  */
+@Deprecated
 public final class NIntBuffer extends NativeBuffer {
     private IntBuffer buffer;
 

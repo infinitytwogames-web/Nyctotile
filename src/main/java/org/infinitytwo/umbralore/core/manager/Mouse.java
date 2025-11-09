@@ -36,7 +36,7 @@ public class Mouse {
     public static void update() {
         double[] x = new double[1];
         double[] y = new double[1];
-        GLFW.glfwGetCursorPos(window.getWindowHandle(), x, y);
+        GLFW.glfwGetCursorPos(window.getWindow(), x, y);
 
         if (first) {
             lastX = x[0];

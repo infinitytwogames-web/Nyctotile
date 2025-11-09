@@ -138,6 +138,10 @@ public class Window {
     public long getWindow() {
         return window;
     }
+    
+    public boolean isShouldClose() {
+        return glfwWindowShouldClose(window);
+    }
 
     public void cleanup() {
         if (glfwKeyCallback != null) glfwKeyCallback.free();

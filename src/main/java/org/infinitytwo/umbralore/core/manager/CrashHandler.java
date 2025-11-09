@@ -52,10 +52,6 @@ public class CrashHandler {
                 writer.println("Free : " + toMB(Runtime.getRuntime().freeMemory()) + " MB");
                 writer.println("Max  : " + toMB(Runtime.getRuntime().maxMemory()) + " MB");
 
-                // System Info
-//                writer.println("\n--- System Properties ---");
-//                System.getProperties().forEach((k, v) -> writer.println(k + ": " + v));
-
             } catch (IOException ex) {
                 System.err.println("Failed to write crash report: " + ex);
             }
@@ -85,7 +81,7 @@ public class CrashHandler {
         return sw.toString();
     }
     
-    public static void buildText() {
+    private static void buildText() {
         if (!crashMessages.isEmpty()) return;
 
         Collections.addAll(crashMessages,

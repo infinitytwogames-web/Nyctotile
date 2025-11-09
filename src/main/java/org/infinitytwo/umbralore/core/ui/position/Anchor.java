@@ -2,7 +2,7 @@ package org.infinitytwo.umbralore.core.ui.position;
 
 import org.joml.Vector2f;
 
-public final class Anchor {
+public class Anchor {
     public float x;
     public float y;
 

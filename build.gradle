@@ -36,6 +36,7 @@ dependencies {
     implementation 'org.json:json:20240303'
     implementation 'com.nimbusds:nimbus-jose-jwt:9.37'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.17.1'
+    implementation 'com.esotericsoftware:kryonet:2.22.0-RC1' // Check for the latest version
 
     implementation 'ch.qos.logback:logback-classic:1.4.11'
 

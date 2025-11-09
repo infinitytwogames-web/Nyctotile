@@ -111,9 +111,8 @@ public class Main {
         Display.init();
 
         Thread.currentThread().setName("Renderer Thread");
-        CrashHandler crashHandler = new CrashHandler();
-        crashHandler.buildText();
-        crashHandler.init();
+        CrashHandler.init();
+        
         logger.info("Starting up...");
         earlySetup();
         logger.info("Constructing Engine's classes...");
@@ -188,12 +187,9 @@ public class Main {
                     }
                 }
             }
-            // --- END GATED LOGIC ---
-
-            // 3. Player Movement (Gated inside handleInput now)
+            
             handleInput(locked);
-
-            render(alpha);
+            render();
 
             glfwPollEvents();
             glfwSwapBuffers(window.getWindowHandle());
@@ -400,24 +396,7 @@ public class Main {
     }
 
     private static void init() {
-        outliner = new Outline(new ShaderProgram(
-                """
-                        #version 330 core
-                        layout (location = 0) in vec3 position;
-                        uniform mat4 model, view, projection;
-                        void main() {
-                            gl_Position = projection * view * model * vec4(position, 1.0);
-                        }
-                        """,
-                """
-                        #version 330 core
-                        out vec4 FragColor;
-                        uniform vec3 outlineColor;
-                        void main() {
-                            FragColor = vec4(outlineColor, 1.0);
-                        }
-                        """
-        ));
+        outliner = new Outline();
 
         serverThread.start();
         networkThread.start();
@@ -461,7 +440,7 @@ public class Main {
     private static double fixedDelta = 1.0 / 60.0, // 60Hz physics
             accumulator = 0.0;
 
-    private static void render(float alpha) {
+    private static void render() {
         Mouse.update();
         glEnable(GL_DEPTH_TEST);
         update();

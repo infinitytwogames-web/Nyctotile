@@ -130,11 +130,15 @@ public class GridMap extends GMap {
     }
     
     public void addChunk(Chunk chunk) {
-        chunks.put(new ChunkPos(chunk.getPosition().x,chunk.getPosition().y),chunk);
+        ChunkPos pos = new ChunkPos(chunk.getPosition().x,chunk.getPosition().y);
+        chunks.put(pos,chunk);
+        
+        for (ChunkPos neighbour : getSurroundingChunks(pos,1)) {
+            if (chunks.containsKey(neighbour)) chunks.get(neighbour).rebuild();
+        }
     }
 
     public void rebuildChunk(int x, int y) {
-//        if (!isReady) return;
         ChunkPos pos = new ChunkPos(x,y);
 
         if (chunks.containsKey(pos)) {

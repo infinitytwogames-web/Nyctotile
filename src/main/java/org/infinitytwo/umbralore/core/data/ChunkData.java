@@ -36,7 +36,13 @@ public class ChunkData {
     public static ChunkData of(byte[] data) throws IOException {
         return unserialize(data);
     }
-
+    
+    public static ChunkData of(int chunkX, int chunkZ, int[] blocks) {
+        ChunkData data = new ChunkData(new Vector2i(chunkX,chunkZ));
+        data.blocks = blocks;
+        return data;
+    }
+    
     public void setData(int x, int y, int z, byte[] data) throws IllegalChunkAccessException {
         if (isInBounds(x,y,z)) blockData.replace(new Vector3i(x,y,z), data);
         else throw new IllegalChunkAccessException("Position ("+x+", "+y+", "+z+") is out of bounds");

@@ -32,6 +32,7 @@ public abstract class Registry<T extends Registerable> {
     }
 
     public int getId(String name) {
+        if (!nameToId.containsKey(name)) throw new UnknownRegistryException("The name \""+name+"\" does not exist in registry.");
         return nameToId.get(name);
     }
 

@@ -1,12 +1,10 @@
 package org.infinitytwo.umbralore.core.world.dimension;
 
 import org.infinitytwo.umbralore.core.constants.Biomes;
-import org.infinitytwo.umbralore.core.context.ClientContext;
 import org.infinitytwo.umbralore.core.context.ServerContext;
-import org.infinitytwo.umbralore.core.data.ChunkPos;
+import org.infinitytwo.umbralore.core.data.ChunkData;
 import org.infinitytwo.umbralore.core.data.PlayerData;
 import org.infinitytwo.umbralore.core.registry.BlockRegistry;
-import org.infinitytwo.umbralore.core.world.ServerGridMap;
 import org.infinitytwo.umbralore.core.world.ServerProcedureGridMap;
 import org.infinitytwo.umbralore.core.world.generation.Biome;
 import org.infinitytwo.umbralore.core.world.generation.NoiseGenerationSettings;
@@ -21,7 +19,7 @@ public class Overworld extends Dimension {
                         Biomes.PLAINS.biome,
                         Biomes.DESERT.biome,
                         Biomes.MOUNTAINS.biome,
-                }), new ServerProcedureGridMap(4,new NoiseGenerationSettings(
+                }), new ServerProcedureGridMap(new NoiseGenerationSettings(
                         62,64,seed, new Biome[]{
                         Biomes.PLAINS.biome,
                         Biomes.DESERT.biome,
@@ -29,13 +27,18 @@ public class Overworld extends Dimension {
                 }),registry),
                 new ArrayList<>());
     }
-
+    
     @Override
-    public void generate(ChunkPos chunk) {
-        world.generate(chunk);
+    public void generate(int x, int y) {
+        ServerProcedureGridMap world = this.world;
+        world.generate(x,y);
     }
-
-
+    
+    public ChunkData generateSync(int x, int y) {
+        ServerProcedureGridMap world = this.world;
+        return world.getChunkOrGenerate(x,y);
+    }
+    
     @Override
     public void playerEntered(ServerContext context, PlayerData playerData) {
 
@@ -48,11 +51,6 @@ public class Overworld extends Dimension {
 
     @Override
     public void tick(ServerContext context) {
-
-    }
-
-    @Override
-    public void draw(ClientContext context) {
 
     }
 }

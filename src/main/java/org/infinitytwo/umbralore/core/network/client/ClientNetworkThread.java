@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.infinitytwo.umbralore.core.constants.PacketType.*;
 
+@Deprecated
 public final class ClientNetworkThread extends NetworkThread {
     public enum ConnectionState {
         DISCONNECTED,
@@ -31,6 +32,7 @@ public final class ClientNetworkThread extends NetworkThread {
         CONNECTED
     }
     
+    private int authPacketId;
     private static final NetworkHandler.CommandProcessor processor = (packets, thread) -> {
         System.out.println(packets.toString()+" Successfully received!");
     };
@@ -49,6 +51,7 @@ public final class ClientNetworkThread extends NetworkThread {
     public ClientNetworkThread(EventBus eventBus, int port) {
         super(LogicalSide.CLIENT, eventBus, port);
         handler = new NetworkHandler(eventBus,this,processor);
+        handler.setName("Client Network Handler");
         
         if (handler.getState() == Thread.State.NEW) {
             handler.start();
@@ -215,7 +218,7 @@ public final class ClientNetworkThread extends NetworkThread {
         
         // --- STAGE 2: AUTHENTICATED/ENCRYPTED TRAFFIC ---
         eventBus.post(new PacketReceived(packet,packet.address()));
-        return true;
+        return false;
     }
     
     private boolean handleHandshake(Packet packet) {
@@ -235,9 +238,8 @@ public final class ClientNetworkThread extends NetworkThread {
                 byte[] encryptedKey = rsaEncrypt(generatedAesKey.getEncoded());
                 
                 int newPacketId = ThreadLocalRandom.current().nextInt();
-                // Send the encrypted AES key back to the server. Must be RELIABLE.
+                
                 send(newPacketId, encryptedKey, serverAddress, serverPort, EXCHANGE.getByte(), true, false);
-                removePacketSent(initialHandshakePacketId);
                 
                 state = ConnectionState.KEY_ESTABLISHED;
                 aesKeyPacket = newPacketId;
@@ -274,7 +276,6 @@ public final class ClientNetworkThread extends NetworkThread {
             }
         }
         
-        // Drop unhandled packets during handshake
         return false;
     }
     
@@ -286,6 +287,7 @@ public final class ClientNetworkThread extends NetworkThread {
     // Helper method to trigger the first encrypted packet
     public void sendAuthentication(InetAddress serverAddress, int serverPort) {
         int authPacketId = ThreadLocalRandom.current().nextInt();
+        this.authPacketId = authPacketId;
         
         String dummyToken = "FAKE_FIREBASE_TOKEN_FOR_OFFLINE_TESTING";
         byte[] tokenBytes = dummyToken.getBytes(UTF_8);
@@ -297,7 +299,6 @@ public final class ClientNetworkThread extends NetworkThread {
         
         byte[] authPayload = buffer.array();
         
-        // Send the authentication packet. It must be RELIABLE (true) and ENCRYPTED (true).
         send(authPacketId, authPayload, serverAddress, serverPort, AUTHENTICATION.getByte(), true, true);
     }
     

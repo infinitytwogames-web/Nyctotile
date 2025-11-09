@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.infinitytwo.umbralore.core.constants.PacketType.*;
 
+@Deprecated
 public final class ServerNetworkThread extends NetworkThread {
     
     private static final byte[] e = new byte[ 0 ];
@@ -148,12 +149,13 @@ public final class ServerNetworkThread extends NetworkThread {
         
         if (playerData == null) {
             System.err.println("Traffic from unauthenticated client: " + clientKey + ". Dropping.");
-            return false;
             
         } else {
             eventBus.post(new PacketReceived(packet));
             return true;
         }
+        
+        return false;
     }
     
     private boolean handleHandshake(Packet packet) {

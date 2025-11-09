@@ -29,7 +29,7 @@ public class Camera {
             yaw = lerp(yaw, targetYaw, rotateSpeed * delta);
 
             // Smoothly interpolate position
-//            position.lerp(targetPosition, moveSpeed * delta);
+            position.lerp(targetPosition, moveSpeed * delta);
         } else {
             pitch = targetPitch;
             yaw = targetYaw;

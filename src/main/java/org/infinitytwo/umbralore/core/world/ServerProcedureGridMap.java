@@ -21,16 +21,10 @@ public class ServerProcedureGridMap extends ServerGridMap {
     protected long seed;
     private Random random;
     protected Logger logger = new Logger(ServerProcedureGridMap.class);
-    protected static AtomicInteger generationLimit = new AtomicInteger(8);
-    protected static AtomicInteger current = new AtomicInteger(0);
+    protected WorkerThreads threads = new WorkerThreads(5);
     protected final List<ChunkData> chunkData = Collections.synchronizedList(new ArrayList<>());
-    protected ExecutorService generationThreads;
     protected ChunkData nextData = null;
     protected final ConcurrentLinkedQueue<ChunkPos> processChunks = new ConcurrentLinkedQueue<>();
-
-    public void cleanup() {
-        generationThreads.shutdown();
-    }
 
     private List<BiomeWeight> findTopBiomes(float temperature, float humidity, Biome[] biomes) {
         if (random == null) random = new Random(seed);
@@ -53,11 +47,6 @@ public class ServerProcedureGridMap extends ServerGridMap {
     }
 
     public void generateBiomeChunkHeightmap(NoiseGenerationSettings settings, ChunkPos GenChunk, Biome[] biomes) {
-        if (generationLimit.get() <= current.get()+1) {
-            logger.error("GENERATION SUCCEEDS THREAD LIMIT! SKIPPING!");
-            return;
-        }
-        current.incrementAndGet();
         final int seaLevel = settings.seaLevel;
         final int baseHeight = settings.baseHeight;
         FastNoise tempNoise = settings.temperature;
@@ -155,7 +144,6 @@ public class ServerProcedureGridMap extends ServerGridMap {
                 }
             }
         }
-        current.decrementAndGet();
         logger.info("Generated x:"+GenChunk.x() * 16+" y:"+GenChunk.z() *16);
     }
 
@@ -209,7 +197,7 @@ public class ServerProcedureGridMap extends ServerGridMap {
     public void generate(ChunkPos chunk) {
         if (!processChunks.contains(chunk)) {
             processChunks.add(chunk);
-            generationThreads.submit(() -> {
+            threads.run(() -> {
                 generateBiomeChunkHeightmap(
                         dimension,
                         chunk,
@@ -243,7 +231,7 @@ public class ServerProcedureGridMap extends ServerGridMap {
 
         // If not, submit a new generation task and block until it's done
         try {
-            Future<ChunkData> future = generationThreads.submit(() -> {
+            Future<ChunkData> future = threads.run(() -> {
                 generateBiomeChunkHeightmap(
                         dimension,
                         p,
@@ -258,7 +246,15 @@ public class ServerProcedureGridMap extends ServerGridMap {
             throw new RuntimeException(e);
         }
     }
-
+    
+    public void generate(int x, int y) {
+        generate(new ChunkPos(x,y));
+    }
+    
+    public ChunkData getChunkOrGenerate(int x, int y) {
+        return getChunkOrGenerate(new Vector2i(x,y));
+    }
+    
     private static class BiomeWeight {
         Biome biome;
         float weight;
@@ -269,20 +265,9 @@ public class ServerProcedureGridMap extends ServerGridMap {
         }
     }
 
-    public ServerProcedureGridMap(int generatorThreads, NoiseGenerationSettings dimension, BlockRegistry registry) {
+    public ServerProcedureGridMap(NoiseGenerationSettings dimension, BlockRegistry registry) {
         super(registry);
         this.dimension = dimension;
         this.random = new Random(seed+58);
-        generationThreads = Executors.newFixedThreadPool(generatorThreads);
     }
-
-
-//    public ChunkData getChunkOrGenerate(Vector2i pos) {
-//        try {
-//            return getChunk(pos);
-//        } catch (IllegalChunkAccessExecption e) {
-//            generate(new ChunkPos(pos.x,pos.y));
-//            return null;
-//        }
-//    }
 }

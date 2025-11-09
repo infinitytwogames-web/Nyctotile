@@ -1,5 +1,6 @@
 package org.infinitytwo.umbralore.core.world;
 
+import org.infinitytwo.umbralore.core.VectorMath;
 import org.infinitytwo.umbralore.core.data.Block;
 import org.infinitytwo.umbralore.block.BlockType;
 import org.infinitytwo.umbralore.core.data.ChunkData;
@@ -162,5 +163,9 @@ public class ServerGridMap extends GMap {
 
     public Collection<ChunkData> getChunks() {
         return Collections.unmodifiableCollection(chunks.values());
+    }
+    
+    public ChunkData getChunk(int x, int y) {
+        return getChunk(new Vector2i(x,y));
     }
 }

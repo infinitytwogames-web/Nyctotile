@@ -1,22 +1,21 @@
 package org.infinitytwo.umbralore.core.ui.input;
 
-import org.infinitytwo.umbralore.core.RGB;
 import org.infinitytwo.umbralore.core.RGBA;
 import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
 import org.infinitytwo.umbralore.core.event.input.MouseHoverEvent;
-import org.infinitytwo.umbralore.core.renderer.UIBatchRenderer;
-import org.infinitytwo.umbralore.core.renderer.FontRenderer;
 import org.infinitytwo.umbralore.core.ui.Label;
 import org.infinitytwo.umbralore.core.ui.display.Screen;
 import org.infinitytwo.umbralore.core.ui.position.Anchor;
 import org.infinitytwo.umbralore.core.ui.position.Pivot;
 import org.joml.Vector2i;
 
+import java.nio.file.Path;
+
 public abstract class Button extends Label {
     protected RGBA original;
 
-    public Button(Screen renderer, FontRenderer fontRenderer, RGB color, String s) {
-        super(renderer, fontRenderer, color);
+    public Button(Screen renderer, Path path, String s) {
+        super(renderer, path);
         original = getBackgroundColor();
 
         setText(s);
@@ -54,10 +53,4 @@ public abstract class Button extends Label {
     
     @Override
     public abstract void onMouseClicked(MouseButtonEvent e);
-    
-    public static class ButtonBuilder<T extends Button> extends LabelBuilder<T> {
-        public ButtonBuilder(UIBatchRenderer renderer, T element) {
-            super(renderer, element);
-        }
-    }
 }

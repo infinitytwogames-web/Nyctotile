@@ -1,14 +1,10 @@
 package org.infinitytwo.umbralore.core.ui.input;
 
-import org.infinitytwo.umbralore.core.RGB;
-import org.infinitytwo.umbralore.core.RGBA;
-import org.infinitytwo.umbralore.core.constants.Constants;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
 import org.infinitytwo.umbralore.core.event.input.CharacterInputEvent;
 import org.infinitytwo.umbralore.core.event.input.KeyPressEvent;
 import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
-import org.infinitytwo.umbralore.core.renderer.FontRenderer;
 import org.infinitytwo.umbralore.core.ui.Caret;
 import org.infinitytwo.umbralore.core.ui.Label;
 import org.infinitytwo.umbralore.core.ui.display.Screen;
@@ -23,7 +19,6 @@ import static org.joml.Math.clamp;
 import static org.lwjgl.glfw.GLFW.*;
 
 public abstract class TextInput extends Label {
-    private final Path path;
     private int index = 0;
     private final Caret caret;
     private boolean input;
@@ -32,10 +27,9 @@ public abstract class TextInput extends Label {
     private boolean disabled;
     private final Screen screen;
     
-    public TextInput(Screen screen, Path path, RGB rgb) {
-        super(screen, new FontRenderer(Constants.fontFilePath, 16), rgb);
+    public TextInput(Screen screen, Path path) {
+        super(screen, path);
         this.screen = screen;
-        this.path = path;
         
         caret = new Caret(screen.getUIBatchRenderer());
         caret.setActive(false);
@@ -46,7 +40,7 @@ public abstract class TextInput extends Label {
         caret.setBackgroundColor(0, 0, 0, 1);
         
         screen.register(caret);
-        setTextPosition(new Anchor(0, 0.5f), new Pivot(0, 0.5f), new Vector2i(5, 0));
+        setTextPosition(new Anchor(0, 0f), new Pivot(0, 0f), new Vector2i(5, 0));
         
         EventBus.connect(this);
     }
@@ -54,9 +48,7 @@ public abstract class TextInput extends Label {
     @Override
     public void setHeight(int height) {
         super.setHeight(height);
-        textRenderer = new FontRenderer(path.toAbsolutePath().toString(), (float) height / 2);
         caret.setHeight(height - 25);
-        text.setRenderer(textRenderer);
     }
     
     @Override
@@ -183,20 +175,41 @@ public abstract class TextInput extends Label {
         }
     }
     
-    // TextInput.java (Modified updateCursorPosition)
-    
+    // Inside TextInput.java
     public void updateCursorPosition() {
         String visible = getVisibleText(textRenderer, builder.toString(), index, width - 10);
         setText(visible);
         
-        // Calculate cursor X based on visible characters before the caret
-        int globalOffset = getVisibleTextStartIndex(builder.toString(), visible);
+        String fullText = builder.toString(); // For clarity
+        
+        // 1. Calculate the Global Offset (where the visible text starts in the full text)
+        // If the visible text starts with "...", the start index (left) is > 0.
+        int globalOffset = 0;
+        if (visible.startsWith(ellipsis)) {
+            // This is complex. The simplest way to find the left index (globalOffset)
+            // is to reverse the logic of getVisibleText() in Label:
+            
+            // Find the full text segment (strip the possible ellipses)
+            String segment = visible;
+            if (visible.startsWith(ellipsis)) segment = segment.substring(ellipsis.length());
+            if (visible.endsWith(ellipsis)) segment = segment.substring(0, segment.length() - ellipsis.length());
+            
+            // Now, find the index of this segment in the full text.
+            globalOffset = fullText.indexOf(segment);
+            // Fallback check, if index not found or is -1, globalOffset remains 0.
+            if (globalOffset == -1) globalOffset = 0;
+        }
+        // If it doesn't start with "...", globalOffset is 0.
+        
+        // This is safer than the original helper, but still relies on string matching.
+        
+        // --- Cursor Position Calculation (This is where the index failure occurs) ---
         
         // FIX: Swap parameter order to match (min, max, val).
-        // Max is visible.length(), as substring(0, length) is valid.
+        // The clamp value should be 'index - globalOffset'
         int localIndex = clamp(0, visible.length(), index - globalOffset);
         
-        // This line should now be safe:
+        // This line should now be safer as it uses the calculated localIndex:
         String leftPart = visible.substring(0, localIndex);
         int cursorX = (int) textRenderer.getStringWidth(leftPart);
         
@@ -206,7 +219,6 @@ public abstract class TextInput extends Label {
     private int getVisibleTextStartIndex(String full, String visible) {
         int fullLen = full.length();
         int visibleLen = visible.replace("...", "").length(); // remove ellipsis
-        int start = 0;
         
         for (int i = 0; i <= fullLen - visibleLen; i++) {
             String candidate = full.substring(i, i + visibleLen);

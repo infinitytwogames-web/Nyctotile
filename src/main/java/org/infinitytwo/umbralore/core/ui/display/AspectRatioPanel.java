@@ -1,10 +1,11 @@
-package org.infinitytwo.umbralore.core.ui;
+package org.infinitytwo.umbralore.core.ui.display;
 
 import org.infinitytwo.umbralore.core.Display;
 import org.infinitytwo.umbralore.core.event.SubscribeEvent;
 import org.infinitytwo.umbralore.core.event.bus.EventBus;
 import org.infinitytwo.umbralore.core.event.state.WindowResizedEvent;
 import org.infinitytwo.umbralore.core.renderer.UIBatchRenderer;
+import org.infinitytwo.umbralore.core.ui.UI;
 import org.infinitytwo.umbralore.core.ui.position.Anchor;
 import org.infinitytwo.umbralore.core.ui.position.Pivot;
 import org.joml.Vector2i;

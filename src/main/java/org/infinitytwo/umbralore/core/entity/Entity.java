@@ -311,4 +311,8 @@ public abstract class Entity implements Registerable {
                 .rotateXYZ(rotation.x, rotation.y, rotation.z)
                 .scale(scale);
     }
+    
+    public void setVelocity(float x, float y, float z) {
+        velocity.set(x,y,z);
+    }
 }

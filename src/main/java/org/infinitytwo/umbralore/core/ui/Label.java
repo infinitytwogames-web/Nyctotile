@@ -13,16 +13,19 @@ import org.infinitytwo.umbralore.core.ui.builder.UIBuilder;
 import org.infinitytwo.umbralore.core.ui.position.TruncateMode;
 import org.joml.Vector2i;
 
+import java.nio.file.Path;
+
 public class Label extends UI {
     protected FontRenderer textRenderer;
     protected Text text;
     protected String ellipsis = "...";
-
-    public Label(Screen renderer, FontRenderer textRenderer, RGB color) {
+    protected final Path path;
+    
+    public Label(Screen renderer, Path path) {
         super(renderer.getUIBatchRenderer());
-        this.textRenderer = textRenderer;
+        this.textRenderer = new FontRenderer(path.toString(),16);
         text = new Text(textRenderer, renderer);
-        text.setColor(color);
+        this.path = path;
         text.setParent(this);
     }
 
@@ -35,7 +38,20 @@ public class Label extends UI {
         super.draw();
         text.draw();
     }
-
+    
+    @Override
+    public void setHeight(int height) {
+        super.setHeight(height);
+        textRenderer = new FontRenderer(path.toAbsolutePath().toString(), (float) height /2);
+        text.setRenderer(textRenderer);
+    }
+    
+    @Override
+    public void setBackgroundColor(float r, float g, float b, float a) {
+        super.setBackgroundColor(r, g, b, a);
+        text.setColor(new RGB(1,1,1));
+    }
+    
     @Override
     public void onMouseClicked(MouseButtonEvent e) {
 
@@ -149,7 +165,11 @@ public class Label extends UI {
 
         return finalText;
     }
-
+    
+    public void setTextPosition(Anchor anchor, Pivot pivot) {
+        text.setPosition(anchor,pivot);
+    }
+    
     public static class LabelBuilder<T extends Label> extends UIBuilder<T> {
         public LabelBuilder(UIBatchRenderer renderer, T element) {
             super(element);

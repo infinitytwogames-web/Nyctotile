@@ -2,9 +2,6 @@ package org.infinitytwo.umbralore.core.ui;
 
 import org.infinitytwo.umbralore.core.RGB;
 import org.infinitytwo.umbralore.core.RGBA;
-import org.infinitytwo.umbralore.core.event.input.MouseButtonEvent;
-import org.infinitytwo.umbralore.core.event.input.MouseHoverEvent;
-import org.infinitytwo.umbralore.core.renderer.FontRenderer;
 import org.infinitytwo.umbralore.core.ui.builder.RectangleBuilder;
 import org.infinitytwo.umbralore.core.ui.builder.UIBuilder;
 import org.infinitytwo.umbralore.core.ui.builtin.Rectangle;
@@ -13,6 +10,7 @@ import org.infinitytwo.umbralore.core.ui.position.Anchor;
 import org.infinitytwo.umbralore.core.ui.position.Pivot;
 import org.joml.Vector2i;
 
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TextProgressBar extends Label {
@@ -22,8 +20,8 @@ public class TextProgressBar extends Label {
 
     protected int percentage = 0;
 
-    public TextProgressBar(Screen renderer, FontRenderer textRenderer, RGB text, int max) {
-        super(renderer,textRenderer,text);
+    public TextProgressBar(Screen renderer, Path font, int max) {
+        super(renderer,font);
         bar = new Rectangle(renderer.getUIBatchRenderer());
         total.set(max);
 
@@ -35,8 +33,8 @@ public class TextProgressBar extends Label {
         bar.setParent(this);
     }
 
-    public static ProgressBarBuilder builder(Screen renderer, FontRenderer textRenderer, RGB text) {
-        return new ProgressBarBuilder(renderer,textRenderer,text);
+    public static ProgressBarBuilder builder(Screen renderer, Path font) {
+        return new ProgressBarBuilder(renderer,font);
     }
 
     public int getTotal() {
@@ -81,28 +79,13 @@ public class TextProgressBar extends Label {
     }
 
     @Override
-    public void onMouseClicked(MouseButtonEvent e) {
-
-    }
-
-    @Override
-    public void onMouseHover(MouseHoverEvent e) {
-
-    }
-
-    @Override
-    public void onMouseHoverEnded() {
-
-    }
-
-    @Override
     public void cleanup() {
 
     }
 
     public static class ProgressBarBuilder extends UIBuilder<TextProgressBar> {
-        public ProgressBarBuilder(Screen renderer, FontRenderer fontRenderer, RGB color) {
-            super(new TextProgressBar(renderer, fontRenderer, color, 10));
+        public ProgressBarBuilder(Screen renderer, Path font) {
+            super(new TextProgressBar(renderer, font, 10));
         }
 
         public ProgressBarBuilder max(int max) {

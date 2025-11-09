@@ -1,6 +1,7 @@
 package org.infinitytwo.umbralore.core.world;
 
 import org.infinitytwo.umbralore.block.BlockType;
+import org.infinitytwo.umbralore.core.VectorMath;
 import org.infinitytwo.umbralore.core.data.Block;
 import org.infinitytwo.umbralore.core.data.ChunkPos;
 import org.infinitytwo.umbralore.core.data.RaycastResult;

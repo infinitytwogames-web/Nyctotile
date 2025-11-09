@@ -31,6 +31,20 @@ public class RGBA extends RGB {
         return new RGBA(r, g, b, alpha);
     }
     
+    public static RGBA getContrastColor(float red, float green, float blue, float alpha) {
+        float luminosity = (0.2126f * red) +
+                (0.7152f * green) +
+                (0.0722f * blue);
+        
+        float threshold = 0.5f;
+        
+        if (luminosity < threshold) {
+            return new RGBA(1.0f, 1.0f, 1.0f,alpha);
+        } else {
+            return new RGBA(0.0f, 0.0f, 0.0f,alpha);
+        }
+    }
+    
     public float getAlpha() {
         return alpha;
     }

@@ -84,6 +84,20 @@ public class RGB {
     
     // --- Utility Methods ---
     
+    public static RGB getContrastColor(float red, float green, float blue) {
+        float luminosity = (0.2126f * red) +
+                (0.7152f * green) +
+                (0.0722f * blue);
+        
+        float threshold = 0.5f;
+        
+        if (luminosity < threshold) {
+            return new RGB(1.0f, 1.0f, 1.0f);
+        } else {
+            return new RGB(0.0f, 0.0f, 0.0f);
+        }
+    }
+    
     public RGB getContrastColor() {
         float luminosity = (0.2126f * this.red) +
                 (0.7152f * this.green) +

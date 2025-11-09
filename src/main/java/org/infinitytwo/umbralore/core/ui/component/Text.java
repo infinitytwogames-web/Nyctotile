@@ -112,7 +112,6 @@ public class Text implements Component {
     }
 
     public void draw() {
-//        if (renderer == null) return;
         screen.run(() -> renderer.renderText(text, getPosition(), color));
     }
 

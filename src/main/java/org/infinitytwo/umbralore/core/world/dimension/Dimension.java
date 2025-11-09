@@ -2,9 +2,11 @@ package org.infinitytwo.umbralore.core.world.dimension;
 
 import org.infinitytwo.umbralore.core.context.ClientContext;
 import org.infinitytwo.umbralore.core.context.ServerContext;
+import org.infinitytwo.umbralore.core.data.ChunkData;
 import org.infinitytwo.umbralore.core.data.ChunkPos;
 import org.infinitytwo.umbralore.core.data.PlayerData;
 import org.infinitytwo.umbralore.core.registry.Registerable;
+import org.infinitytwo.umbralore.core.world.GridMap;
 import org.infinitytwo.umbralore.core.world.ServerGridMap;
 import org.infinitytwo.umbralore.core.world.ServerProcedureGridMap;
 import org.infinitytwo.umbralore.core.world.generation.Biome;
@@ -55,14 +57,11 @@ public abstract class Dimension implements Registerable {
         return "Dimension[" + name + " | id=" + id + "]";
     }
 
-    public abstract void generate(ChunkPos chunk);
+    public void generate(ChunkPos chunk) { generate(chunk.x(), chunk.z());}
+    
     public abstract void playerEntered(ServerContext context, PlayerData playerData);
     public abstract void playerLeave(PlayerData playerData);
-//    public abstract SpawnLocation playerDied(Player player);
     public abstract void tick(ServerContext context);
-    public abstract void draw(ClientContext context);
-
-    public void cleanup() {
-        world.cleanup();
-    }
+    public abstract void generate(int x, int y);
+    public abstract ChunkData generateSync(int x, int y);
 }
