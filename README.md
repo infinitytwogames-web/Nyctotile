@@ -1,29 +1,29 @@
-# 🌌 Umbralore
+# 🌌 Nyctotile
 
 **An open-source voxel-like game with mysterious lore.**
 
-Umbralore is an early-stage project building a modern, moddable, voxel-based adventure game written entirely in Java. Explore a world shrouded in mystery, uncover its history, and survive the secrets hidden in the shadows.
+Nyctotile is an early-stage project building a modern, moddable, voxel-based adventure game written entirely in Java. Explore a world shrouded in mystery, uncover its history, and survive the secrets hidden in the shadows.
 
 ## 🛠️ Project Status
 
-| Status | Language & Dependencies | License |
-| :--- | :--- | :--- |
-| **Early Development (Pre-Alpha)** | **Java 17** (LWJGL3) | **MIT License** |
+| Status                            | Language & Dependencies | License         |
+|:----------------------------------|:------------------------|:----------------|
+| **Early Development (Pre-Alpha)** | **Java 17** (LWJGL3)    | **MIT License** |
 
-Currently, the project is focusing on core engine stability and fundamental game logic (like the inventory system you are currently working on\!). It is not yet ready for end-user installation.
+Currently, the project is focusing on core engine stability and fundamental game logic. It is not yet ready for end-user installation.
 
 -----
 
 ## 🚀 Key Technologies
 
-Umbralore is built on a modern Java foundation, leveraging performance and portability.
+Nyctotile is built on a modern Java foundation, leveraging performance and portability.
 
-| Technology | Purpose |
-| :--- | :--- |
-| **Java 17+** | Primary development language. |
-| **LWJGL3** | Low-level access to graphics (OpenGL), audio, and input. |
-| **JOML** | Fast and lightweight mathematics library for vector and matrix operations. |
-| **TOML** | Configuration file format for easy, human-readable settings. |
+| Technology  | Purpose                                                                    |
+|:------------|:---------------------------------------------------------------------------|
+| **Java 17** | Primary development language.                                              |
+| **LWJGL3**  | Low-level access to graphics (OpenGL), audio, and input.                   |
+| **JOML**    | Fast and lightweight mathematics library for vector and matrix operations. |
+| **TOML**    | Configuration file format for easy, human-readable settings.               |
 
 -----
 
@@ -40,8 +40,8 @@ Since the project is in a very early stage, there is no runnable game distributi
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/YourUsername/Umbralore.git
-    cd Umbralore
+    git clone https://github.com/infinitytwogames-web/Nyctotile.git
+    cd Nyctotile
     ```
 2.  **Open in IDE:**
     Import the project into your IDE as a **Gradle project**.
@@ -56,7 +56,7 @@ We welcome contributions\! As a project in early development, all contributions 
 
 ### How to Contribute
 
-1.  **Report Issues:** Found a bug (like the recent `NullPointerException` 🐛)? Please open a detailed **Issue** on the repository. Include the full stacktrace and steps to reproduce.
+1.  **Report Issues:** Found a bug? Please open a detailed **Issue** on the repository. Include the full stacktrace and steps to reproduce.
 2.  **Submit Code:** Fork the repository, create a descriptive branch, and submit a **Pull Request (PR)** with your changes. New features or bug fixes should align with the project's architectural principles.
 
 ### Licensing
