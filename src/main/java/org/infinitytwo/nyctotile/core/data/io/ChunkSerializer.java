@@ -1,6 +1,6 @@
 package org.infinitytwo.nyctotile.core.data.io;
 
-import org.infinitytwo.nyctotile.core.data.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
 import org.joml.Vector2i;
 
 import java.io.*;

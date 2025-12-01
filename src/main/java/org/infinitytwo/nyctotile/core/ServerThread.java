@@ -1,8 +1,8 @@
 package org.infinitytwo.nyctotile.core;
 
 import org.infinitytwo.nyctotile.block.ServerBlockType;
-import org.infinitytwo.nyctotile.core.data.Block;
-import org.infinitytwo.nyctotile.core.data.ChunkPos;
+import org.infinitytwo.nyctotile.core.data.world.Block;
+import org.infinitytwo.nyctotile.core.data.world.ChunkPos;
 import org.infinitytwo.nyctotile.core.data.PlayerData;
 import org.infinitytwo.nyctotile.core.data.SpawnLocation;
 import org.infinitytwo.nyctotile.core.entity.Entity;
@@ -13,7 +13,7 @@ import org.infinitytwo.nyctotile.core.manager.EntityManager;
 import org.infinitytwo.nyctotile.core.manager.Players;
 import org.infinitytwo.nyctotile.core.manager.World;
 import org.infinitytwo.nyctotile.core.network.data.Packets;
-import org.infinitytwo.nyctotile.core.network.ServerNetwork;
+import org.infinitytwo.nyctotile.core.network.thread.ServerNetwork;
 import org.infinitytwo.nyctotile.core.registry.BlockRegistry;
 import org.infinitytwo.nyctotile.core.registry.DimensionRegistry;
 import org.infinitytwo.nyctotile.core.security.AntiCheat;
@@ -31,7 +31,7 @@ import java.util.UUID;
 public class ServerThread extends Thread {
     private volatile boolean closing = false;
     private volatile boolean ready = false;
-    private final EventBus eventBus = new EventBus("Server Network Thread");
+    private final EventBus eventBus = new EventBus();
     private Dimension overworld;
     private int seed;
     private BlockRegistry registry;

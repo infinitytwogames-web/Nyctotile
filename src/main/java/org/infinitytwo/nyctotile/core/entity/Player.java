@@ -1,8 +1,8 @@
 package org.infinitytwo.nyctotile.core.entity;
 
 import org.infinitytwo.nyctotile.core.Window;
-import org.infinitytwo.nyctotile.core.data.AABB;
-import org.infinitytwo.nyctotile.core.data.InputManager;
+import org.infinitytwo.nyctotile.core.data.world.AABB;
+import org.infinitytwo.nyctotile.core.data.io.InputManager;
 import org.infinitytwo.nyctotile.core.data.Inventory;
 import org.infinitytwo.nyctotile.core.data.PlayerData;
 import org.infinitytwo.nyctotile.core.event.bus.EventBus;
@@ -21,7 +21,7 @@ public class Player extends Entity {
     @Nullable
     protected Camera camera;
     private InputManager input;
-    private final EventBus bus = new EventBus("Player");
+    private final EventBus bus = new EventBus();
     
     public Player(PlayerData data, Dimension map, @Nullable Camera camera, Window window) {
         super("player", map, window, new Inventory(36));

@@ -1,10 +1,10 @@
 package org.infinitytwo.nyctotile.core.ui;
 
-import org.infinitytwo.nyctotile.core.RGBA;
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.ui.builder.RectangleBuilder;
 import org.infinitytwo.nyctotile.core.ui.builder.UIBuilder;
 import org.infinitytwo.nyctotile.core.ui.builtin.Rectangle;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
 import org.infinitytwo.nyctotile.core.ui.position.Pivot;
 import org.joml.Vector2i;

@@ -1,12 +1,12 @@
 package org.infinitytwo.nyctotile.core.ui.component;
 
-import org.infinitytwo.nyctotile.core.RGB;
+import org.infinitytwo.nyctotile.core.data.RGB;
 import org.infinitytwo.nyctotile.core.data.ItemType;
 import org.infinitytwo.nyctotile.core.data.Item;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.registry.ItemRegistry;
 import org.infinitytwo.nyctotile.core.renderer.FontRenderer;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
 import org.infinitytwo.nyctotile.core.ui.position.Pivot;
 import org.joml.Vector2i;

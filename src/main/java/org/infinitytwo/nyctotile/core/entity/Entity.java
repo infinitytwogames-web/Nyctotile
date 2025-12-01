@@ -1,8 +1,8 @@
 package org.infinitytwo.nyctotile.core.entity;
 
 import org.infinitytwo.nyctotile.core.Window;
-import org.infinitytwo.nyctotile.core.data.Block;
-import org.infinitytwo.nyctotile.core.data.AABB;
+import org.infinitytwo.nyctotile.core.data.world.Block;
+import org.infinitytwo.nyctotile.core.data.world.AABB;
 import org.infinitytwo.nyctotile.core.data.Inventory;
 import org.infinitytwo.nyctotile.core.data.Item;
 import org.infinitytwo.nyctotile.core.registry.Registerable;

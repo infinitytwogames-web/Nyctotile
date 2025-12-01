@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+@Deprecated
 public abstract class EventStack {
     private static final Map<String, SubscribeMethod> stackFlow = new HashMap<>();
     private static final ArrayList<String> channels = new ArrayList<>();

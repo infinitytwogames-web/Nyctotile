@@ -1,8 +1,8 @@
 package org.infinitytwo.nyctotile.core.world.dimension;
 
 import org.infinitytwo.nyctotile.core.context.ServerContext;
-import org.infinitytwo.nyctotile.core.data.ChunkData;
-import org.infinitytwo.nyctotile.core.data.ChunkPos;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkPos;
 import org.infinitytwo.nyctotile.core.data.PlayerData;
 import org.infinitytwo.nyctotile.core.registry.Registerable;
 import org.infinitytwo.nyctotile.core.world.ServerProcedureGridMap;

@@ -1,7 +1,12 @@
 package org.infinitytwo.nyctotile.core;
 
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.event.bus.EventBus;
-import org.infinitytwo.nyctotile.core.event.input.*;
+import org.infinitytwo.nyctotile.core.event.input.keyboard.CharacterInputEvent;
+import org.infinitytwo.nyctotile.core.event.input.keyboard.KeyPressEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseCoordinatesEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseScrollEvent;
 import org.infinitytwo.nyctotile.core.event.state.WindowResizedEvent;
 import org.infinitytwo.nyctotile.core.data.io.ResourceLoader;
 import org.joml.Vector2f;
@@ -272,6 +277,6 @@ public class Window {
     }
     
     public void setBackgroundColor(RGBA color) {
-        glClearColor(color.red, color.green, color.blue, color.alpha);
+        glClearColor(color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
     }
 }

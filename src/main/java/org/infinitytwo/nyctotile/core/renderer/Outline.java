@@ -1,7 +1,7 @@
 package org.infinitytwo.nyctotile.core.renderer;
 
 import org.infinitytwo.nyctotile.core.Window;
-import org.infinitytwo.nyctotile.core.data.AABB;
+import org.infinitytwo.nyctotile.core.data.world.AABB;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.lwjgl.opengl.*;

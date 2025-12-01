@@ -3,7 +3,7 @@ plugins {
     id 'application'
 }
 
-group = 'dev.merossany.calculatorapp'
+group = 'org.infinitytwo'
 version = '1.0-SNAPSHOT'
 
 repositories {
@@ -17,7 +17,7 @@ repositories {
 }
 
 application {
-    mainClass = "org.infinitytwo.umbralore.core.Main"
+    mainClass = "org.infinitytwo.nyctotile.core.Main"
 }
 
 dependencies {

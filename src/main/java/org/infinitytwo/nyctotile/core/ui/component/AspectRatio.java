@@ -1,6 +1,6 @@
 package org.infinitytwo.nyctotile.core.ui.component;
 
-import org.infinitytwo.nyctotile.core.Display;
+import org.infinitytwo.nyctotile.core.manager.Display;
 import org.infinitytwo.nyctotile.core.event.SubscribeEvent;
 import org.infinitytwo.nyctotile.core.event.bus.EventBus;
 import org.infinitytwo.nyctotile.core.event.state.WindowResizedEvent;

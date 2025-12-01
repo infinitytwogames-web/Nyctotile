@@ -41,7 +41,7 @@ public class BlinkingInterval {
         this.inactiveDurationNanos = inactiveMillis * 1_000_000L;
         this.isCurrentlyActive = true; // Start in the active phase
 
-        this.eventBus = new EventBus("BlinkingInterval");
+        this.eventBus = new EventBus();
         eventBus.register(this); // Register this instance to handle its own events
 
         // Initialize the thread but don't start it yet

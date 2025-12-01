@@ -16,6 +16,7 @@ class Plane {
 }
 
 public class FrustumCuller {
+    // TODO: THIS CULLER IS TOO AGGRESSIVE
     private final Plane[] planes = new Plane[6]; // Left, Right, Bottom, Top, Near, Far
 
     public FrustumCuller() {

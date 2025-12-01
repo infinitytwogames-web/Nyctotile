@@ -2,7 +2,7 @@ package org.infinitytwo.nyctotile.core.world.dimension;
 
 import org.infinitytwo.nyctotile.core.constants.Biomes;
 import org.infinitytwo.nyctotile.core.context.ServerContext;
-import org.infinitytwo.nyctotile.core.data.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
 import org.infinitytwo.nyctotile.core.data.PlayerData;
 import org.infinitytwo.nyctotile.core.registry.BlockRegistry;
 import org.infinitytwo.nyctotile.core.world.ServerProcedureGridMap;

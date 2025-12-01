@@ -1,6 +1,6 @@
 package org.infinitytwo.nyctotile.block;
 
-import org.infinitytwo.nyctotile.core.data.AABB;
+import org.infinitytwo.nyctotile.core.data.world.AABB;
 import org.infinitytwo.nyctotile.core.data.buffer.NFloatBuffer;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.registry.BlockRegistry;

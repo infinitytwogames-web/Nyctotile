@@ -1,8 +1,8 @@
 package org.infinitytwo.nyctotile.core.world;
 
 import org.infinitytwo.nyctotile.core.Window;
-import org.infinitytwo.nyctotile.core.data.ChunkData;
-import org.infinitytwo.nyctotile.core.data.ChunkPos;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkPos;
 import org.infinitytwo.nyctotile.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.registry.BlockRegistry;

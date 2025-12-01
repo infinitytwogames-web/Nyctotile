@@ -1,7 +1,7 @@
 package org.infinitytwo.nyctotile.core.ui.builder;
 
 import org.infinitytwo.nyctotile.core.IBuilder;
-import org.infinitytwo.nyctotile.core.RGBA;
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.ui.UI;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
 import org.infinitytwo.nyctotile.core.ui.position.Pivot;

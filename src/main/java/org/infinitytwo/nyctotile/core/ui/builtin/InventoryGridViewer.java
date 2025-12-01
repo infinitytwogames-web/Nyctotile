@@ -3,13 +3,13 @@ package org.infinitytwo.nyctotile.core.ui.builtin;
 import org.infinitytwo.nyctotile.core.Window;
 import org.infinitytwo.nyctotile.core.data.Inventory;
 import org.infinitytwo.nyctotile.core.event.SubscribeEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseButtonEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseHoverEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseHoverEvent;
 import org.infinitytwo.nyctotile.core.data.Item;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.renderer.FontRenderer;
-import org.infinitytwo.nyctotile.core.ui.display.Grid;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Grid;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

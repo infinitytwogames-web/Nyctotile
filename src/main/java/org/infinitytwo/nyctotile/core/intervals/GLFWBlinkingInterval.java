@@ -44,7 +44,7 @@ public class GLFWBlinkingInterval {
         this.inactiveDurationNanos = inactiveMillis * 1_000_000L;
         this.isCurrentlyActive = true; // Start in the active phase
 
-        this.eventBus = new EventBus("GLFWBlinkingInterval"); // Changed bus name for consistency
+        this.eventBus = new EventBus(); // Changed bus name for consistency
         eventBus.register(this); // Register this instance to handle its own events
 
         // Initialize the thread but don't start it yet

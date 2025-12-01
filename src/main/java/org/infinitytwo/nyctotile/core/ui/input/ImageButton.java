@@ -1,7 +1,7 @@
 package org.infinitytwo.nyctotile.core.ui.input;
 
-import org.infinitytwo.nyctotile.core.RGBA;
-import org.infinitytwo.nyctotile.core.event.input.MouseHoverEvent;
+import org.infinitytwo.nyctotile.core.data.RGBA;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseHoverEvent;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.renderer.UIBatchRenderer;
 import org.infinitytwo.nyctotile.core.ui.UI;

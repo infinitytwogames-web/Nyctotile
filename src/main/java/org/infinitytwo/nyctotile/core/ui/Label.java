@@ -1,12 +1,12 @@
 package org.infinitytwo.nyctotile.core.ui;
 
-import org.infinitytwo.nyctotile.core.RGB;
-import org.infinitytwo.nyctotile.core.event.input.MouseButtonEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseHoverEvent;
+import org.infinitytwo.nyctotile.core.data.RGB;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseHoverEvent;
 import org.infinitytwo.nyctotile.core.renderer.FontRenderer;
 import org.infinitytwo.nyctotile.core.renderer.UIBatchRenderer;
 import org.infinitytwo.nyctotile.core.ui.component.Text;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
 import org.infinitytwo.nyctotile.core.ui.position.Pivot;
 import org.infinitytwo.nyctotile.core.ui.builder.UIBuilder;

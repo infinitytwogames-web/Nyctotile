@@ -1,6 +1,6 @@
 package org.infinitytwo.nyctotile.core.renderer;
 
-import org.infinitytwo.nyctotile.core.RGB;
+import org.infinitytwo.nyctotile.core.data.RGB;
 import org.infinitytwo.nyctotile.core.event.bus.EventBus;
 import org.infinitytwo.nyctotile.core.constants.ShaderFiles;
 import org.joml.Matrix4f;
@@ -21,7 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.infinitytwo.nyctotile.core.Display.projection;
+import static org.infinitytwo.nyctotile.core.manager.Display.projection;
 import static org.lwjgl.opengl.GL15.*;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;

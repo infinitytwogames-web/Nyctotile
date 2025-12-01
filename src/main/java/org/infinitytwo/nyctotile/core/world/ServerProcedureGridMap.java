@@ -1,9 +1,9 @@
 package org.infinitytwo.nyctotile.core.world;
 
-import org.infinitytwo.nyctotile.core.data.Block;
-import org.infinitytwo.nyctotile.core.data.ChunkPos;
+import org.infinitytwo.nyctotile.core.data.world.Block;
+import org.infinitytwo.nyctotile.core.data.world.ChunkPos;
 import org.infinitytwo.nyctotile.core.manager.WorkerThreads;
-import org.infinitytwo.nyctotile.core.data.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
 import org.infinitytwo.nyctotile.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.nyctotile.core.registry.BlockRegistry;
 import org.infinitytwo.nyctotile.core.world.generation.Biome;

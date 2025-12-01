@@ -1,8 +1,8 @@
 package org.infinitytwo.nyctotile.core.renderer;
 
-import org.infinitytwo.nyctotile.core.Display;
+import org.infinitytwo.nyctotile.core.manager.Display;
 import org.infinitytwo.nyctotile.core.Main;
-import org.infinitytwo.nyctotile.core.RGBA;
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.Window;
 import org.infinitytwo.nyctotile.core.constants.ShaderFiles;
 import org.infinitytwo.nyctotile.core.event.SubscribeEvent;
@@ -21,8 +21,8 @@ import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
 
-import static org.infinitytwo.nyctotile.core.Display.glEnable;
-import static org.infinitytwo.nyctotile.core.Display.transformVirtualToWindow;
+import static org.infinitytwo.nyctotile.core.manager.Display.glEnable;
+import static org.infinitytwo.nyctotile.core.manager.Display.transformVirtualToWindow;
 import static org.infinitytwo.nyctotile.core.constants.Constants.UI_DESIGN_HEIGHT;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;

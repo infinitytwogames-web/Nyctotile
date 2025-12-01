@@ -8,10 +8,9 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 
 public class EventBus {
-    private static final EventBus global = new EventBus("Global");
+    private static final EventBus global = new EventBus();
     private final Map<Class<?>, List<ListenerMethod>> subscribers = new HashMap<>();
-    private final String name;
-
+    
     public static void dispatch(Event event) {
         global.post(event);
     }
@@ -43,10 +42,6 @@ public class EventBus {
                 }
             }
         }
-    }
-
-    public EventBus(String process) {
-        name = process;
     }
 
     public void register(Object listenerInstance) {
@@ -125,10 +120,6 @@ public class EventBus {
             methods.removeIf(lm -> lm.instance == listenerInstance);
         }
     }
-
-    public String getProcess() {
-        return name;
-    }
-
+    
     private record ListenerMethod(Object instance, Method method) {}
 }

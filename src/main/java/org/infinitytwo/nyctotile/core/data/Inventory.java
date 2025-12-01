@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Inventory {
     protected final int maxSlots;
     protected final Map<Integer, Item> items = new ConcurrentHashMap<>();
-    protected final EventBus eventBus = new EventBus("Inventory");
+    protected final EventBus eventBus = new EventBus();
 
     public Inventory(int maxSlots) {
         this.maxSlots = maxSlots;

@@ -1,6 +1,6 @@
 package org.infinitytwo.nyctotile.core.network.data;
 
-import org.infinitytwo.nyctotile.core.data.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
 import org.infinitytwo.nyctotile.core.data.io.DataSchematica;
 import org.infinitytwo.nyctotile.core.data.io.DataSchematica.Data;
 import org.infinitytwo.nyctotile.core.entity.Entity;

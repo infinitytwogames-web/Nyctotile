@@ -2,27 +2,29 @@ package org.infinitytwo.nyctotile.core;
 
 import org.infinitytwo.nyctotile.block.*;
 import org.infinitytwo.nyctotile.core.constants.Constants;
-import org.infinitytwo.nyctotile.core.data.*;
+import org.infinitytwo.nyctotile.core.data.RGBA;
+import org.infinitytwo.nyctotile.core.data.io.InputManager;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
 import org.infinitytwo.nyctotile.core.entity.Entity;
 import org.infinitytwo.nyctotile.core.entity.Player;
 import org.infinitytwo.nyctotile.core.event.SubscribeEvent;
 import org.infinitytwo.nyctotile.core.event.bus.EventBus;
-import org.infinitytwo.nyctotile.core.event.input.KeyPressEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseButtonEvent;
+import org.infinitytwo.nyctotile.core.event.input.keyboard.KeyPressEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
 import org.infinitytwo.nyctotile.core.event.input.VelocityChangedEvent;
 import org.infinitytwo.nyctotile.core.event.state.WindowResizedEvent;
 import org.infinitytwo.nyctotile.core.manager.*;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
-import org.infinitytwo.nyctotile.core.network.ClientNetwork;
+import org.infinitytwo.nyctotile.core.network.thread.ClientNetwork;
 import org.infinitytwo.nyctotile.core.network.data.Packets;
-import org.infinitytwo.nyctotile.core.network.ServerNetwork;
+import org.infinitytwo.nyctotile.core.network.thread.ServerNetwork;
 import org.infinitytwo.nyctotile.core.registry.BlockRegistry;
 import org.infinitytwo.nyctotile.core.registry.DimensionRegistry;
 import org.infinitytwo.nyctotile.core.renderer.*;
 import org.infinitytwo.nyctotile.core.ui.Label;
 import org.infinitytwo.nyctotile.core.ui.component.Scale;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
-import org.infinitytwo.nyctotile.core.ui.display.scroll.ScrollableMenu;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.scroll.ScrollableMenu;
 import org.infinitytwo.nyctotile.core.ui.input.Button;
 import org.infinitytwo.nyctotile.core.ui.input.TextInput;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
@@ -129,7 +131,7 @@ public class Main {
         map = new GridMap(BlockRegistry.getMainBlockRegistry());
         outliner = new Outline();
         input = new InputManager(window);
-        clientEventBus = new EventBus("Client");
+        clientEventBus = new EventBus();
         Mouse.setWindow(window);
         
         // NETWORK

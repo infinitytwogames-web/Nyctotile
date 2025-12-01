@@ -1,10 +1,10 @@
 package org.infinitytwo.nyctotile.core.ui.input;
 
-import org.infinitytwo.nyctotile.core.RGBA;
-import org.infinitytwo.nyctotile.core.event.input.MouseButtonEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseHoverEvent;
+import org.infinitytwo.nyctotile.core.data.RGBA;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseHoverEvent;
 import org.infinitytwo.nyctotile.core.ui.Label;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
 import org.infinitytwo.nyctotile.core.ui.position.Pivot;
 import org.jetbrains.annotations.NotNull;

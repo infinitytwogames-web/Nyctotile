@@ -1,7 +1,6 @@
 package org.infinitytwo.nyctotile.core.data;
 
 import org.infinitytwo.nyctotile.core.constants.Material;
-import org.infinitytwo.nyctotile.core.recipe.Recipe;
 import org.infinitytwo.nyctotile.core.registry.Registerable;
 
 public class ItemType implements Registerable {

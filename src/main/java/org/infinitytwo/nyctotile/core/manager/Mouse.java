@@ -1,12 +1,11 @@
 package org.infinitytwo.nyctotile.core.manager;
 
-import org.infinitytwo.nyctotile.core.Display;
-import org.infinitytwo.nyctotile.core.RGBA;
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.Window;
 import org.infinitytwo.nyctotile.core.data.Item;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.renderer.FontRenderer;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.component.ItemHolder;
 import org.joml.Vector2i;
 

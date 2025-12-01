@@ -4,6 +4,7 @@ import org.infinitytwo.nyctotile.core.ServerThread;
 import org.infinitytwo.nyctotile.core.constants.LogicalSide;
 import org.infinitytwo.nyctotile.core.constants.PhysicalSide;
 
+@Deprecated
 public abstract class Context {
     public final LogicalSide logicalSide;
     public final PhysicalSide physicalSide;

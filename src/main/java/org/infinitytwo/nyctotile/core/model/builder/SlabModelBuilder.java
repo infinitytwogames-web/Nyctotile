@@ -1,6 +1,7 @@
 package org.infinitytwo.nyctotile.core.model.builder;
 
-import org.infinitytwo.nyctotile.core.data.AABB;
+import org.infinitytwo.nyctotile.core.constants.Face;
+import org.infinitytwo.nyctotile.core.data.world.AABB;
 import org.infinitytwo.nyctotile.core.world.GridMap;
 
 import java.util.ArrayList;

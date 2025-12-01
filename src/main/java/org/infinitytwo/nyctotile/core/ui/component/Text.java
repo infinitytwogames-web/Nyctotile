@@ -1,9 +1,9 @@
 package org.infinitytwo.nyctotile.core.ui.component;
 
-import org.infinitytwo.nyctotile.core.Display;
-import org.infinitytwo.nyctotile.core.RGB;
+import org.infinitytwo.nyctotile.core.manager.Display;
+import org.infinitytwo.nyctotile.core.data.RGB;
 import org.infinitytwo.nyctotile.core.renderer.FontRenderer;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.UI;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
 import org.infinitytwo.nyctotile.core.ui.position.Pivot;

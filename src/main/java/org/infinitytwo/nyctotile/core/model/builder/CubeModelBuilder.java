@@ -1,5 +1,6 @@
 package org.infinitytwo.nyctotile.core.model.builder;
 
+import org.infinitytwo.nyctotile.core.constants.Face;
 import org.infinitytwo.nyctotile.core.data.buffer.NFloatBuffer;
 import org.infinitytwo.nyctotile.core.world.GridMap;
 

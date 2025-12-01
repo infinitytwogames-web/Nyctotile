@@ -4,10 +4,10 @@ import org.infinitytwo.nyctotile.core.data.Inventory;
 import org.infinitytwo.nyctotile.core.data.Item;
 import org.infinitytwo.nyctotile.core.event.SubscribeEvent;
 import org.infinitytwo.nyctotile.core.event.bus.EventBus;
-import org.infinitytwo.nyctotile.core.event.input.MouseButtonEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseHoverEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseHoverEvent;
 import org.infinitytwo.nyctotile.core.ui.UI;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 
 import java.util.Collection;
 

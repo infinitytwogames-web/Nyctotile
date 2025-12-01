@@ -1,7 +1,7 @@
 package org.infinitytwo.nyctotile.core.manager;
 
 import org.infinitytwo.nyctotile.core.exception.UnknownRegistryException;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 
 import java.util.EmptyStackException;
 import java.util.HashMap;

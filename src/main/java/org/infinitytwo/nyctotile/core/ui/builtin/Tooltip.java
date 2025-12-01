@@ -1,11 +1,11 @@
 package org.infinitytwo.nyctotile.core.ui.builtin;
 
 import org.infinitytwo.nyctotile.core.constants.Constants;
-import org.infinitytwo.nyctotile.core.event.input.MouseButtonEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseHoverEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseHoverEvent;
 import org.infinitytwo.nyctotile.core.event.state.WindowResizedEvent;
 import org.infinitytwo.nyctotile.core.renderer.FontRenderer;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.UI;
 import org.infinitytwo.nyctotile.core.ui.component.Scale;
 import org.infinitytwo.nyctotile.core.ui.component.Text;

@@ -1,8 +1,8 @@
 package org.infinitytwo.nyctotile.core.world;
 
 import org.infinitytwo.nyctotile.block.BlockType;
-import org.infinitytwo.nyctotile.core.data.Block;
-import org.infinitytwo.nyctotile.core.data.ChunkPos;
+import org.infinitytwo.nyctotile.core.data.world.Block;
+import org.infinitytwo.nyctotile.core.data.world.ChunkPos;
 import org.infinitytwo.nyctotile.core.data.RaycastResult;
 import org.infinitytwo.nyctotile.core.data.io.BlockDataReader;
 import org.infinitytwo.nyctotile.core.exception.IllegalChunkAccessException;
@@ -13,8 +13,8 @@ import org.joml.Vector3i;
 
 import java.util.List;
 
-import static org.infinitytwo.nyctotile.core.data.ChunkData.SIZE_X;
-import static org.infinitytwo.nyctotile.core.data.ChunkData.SIZE_Z;
+import static org.infinitytwo.nyctotile.core.data.world.ChunkData.SIZE_X;
+import static org.infinitytwo.nyctotile.core.data.world.ChunkData.SIZE_Z;
 
 public abstract class GMap {
     public static Vector2i convertToChunkPosition(Vector3i block) {

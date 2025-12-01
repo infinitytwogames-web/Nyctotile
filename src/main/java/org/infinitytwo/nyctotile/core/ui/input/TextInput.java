@@ -2,19 +2,18 @@ package org.infinitytwo.nyctotile.core.ui.input;
 
 import org.infinitytwo.nyctotile.core.event.bus.EventBus;
 import org.infinitytwo.nyctotile.core.event.SubscribeEvent;
-import org.infinitytwo.nyctotile.core.event.input.CharacterInputEvent;
-import org.infinitytwo.nyctotile.core.event.input.KeyPressEvent;
-import org.infinitytwo.nyctotile.core.event.input.MouseButtonEvent;
-import org.infinitytwo.nyctotile.core.ui.Caret;
+import org.infinitytwo.nyctotile.core.event.input.keyboard.CharacterInputEvent;
+import org.infinitytwo.nyctotile.core.event.input.keyboard.KeyPressEvent;
+import org.infinitytwo.nyctotile.core.event.input.mouse.MouseButtonEvent;
 import org.infinitytwo.nyctotile.core.ui.Label;
-import org.infinitytwo.nyctotile.core.ui.display.Scene;
+import org.infinitytwo.nyctotile.core.ui.layout.Scene;
 import org.infinitytwo.nyctotile.core.ui.position.Anchor;
 import org.infinitytwo.nyctotile.core.ui.position.Pivot;
 import org.joml.Vector2i;
 
 import java.nio.file.Path;
 
-import static org.infinitytwo.nyctotile.core.Display.transformWindowToVirtual;
+import static org.infinitytwo.nyctotile.core.manager.Display.transformWindowToVirtual;
 import static org.joml.Math.clamp;
 import static org.lwjgl.glfw.GLFW.*;
 

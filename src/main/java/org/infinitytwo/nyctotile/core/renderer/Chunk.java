@@ -4,7 +4,7 @@ import org.infinitytwo.nyctotile.core.manager.ChunkManager;
 import org.infinitytwo.nyctotile.core.Window;
 import org.infinitytwo.nyctotile.core.manager.WorkerThreads;
 import org.infinitytwo.nyctotile.block.BlockType;
-import org.infinitytwo.nyctotile.core.data.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
 import org.infinitytwo.nyctotile.core.data.buffer.NFloatBuffer;
 import org.infinitytwo.nyctotile.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;

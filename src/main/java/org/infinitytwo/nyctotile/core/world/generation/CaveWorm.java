@@ -1,6 +1,6 @@
 package org.infinitytwo.nyctotile.core.world.generation;
 
-import org.infinitytwo.nyctotile.core.data.ChunkData;
+import org.infinitytwo.nyctotile.core.data.world.ChunkData;
 import org.infinitytwo.nyctotile.core.exception.IllegalChunkAccessException;
 import org.infinitytwo.nyctotile.core.world.ServerGridMap;
 import org.joml.Vector3i;

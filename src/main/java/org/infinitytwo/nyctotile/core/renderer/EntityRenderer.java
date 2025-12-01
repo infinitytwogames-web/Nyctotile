@@ -17,6 +17,11 @@ import static org.lwjgl.opengl.GL30.*;
 import static org.lwjgl.opengl.GL31.glDrawArraysInstanced;
 import static org.lwjgl.opengl.GL33.glVertexAttribDivisor;
 
+/**
+ *  This class has some issues currently.
+ *  I will fix it later when I finish the Lighting System.
+ */
+@Deprecated
 public class EntityRenderer {
     private final int vao;
     private final int vbo;
@@ -108,6 +113,7 @@ public class EntityRenderer {
     }
 
     public void draw(Camera camera, Window window) {
+        // TODO: CHECK WHY IT ISN'T DRAWING
         program.bind();
         atlas.getTexture().bind();
 
