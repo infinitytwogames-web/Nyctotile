@@ -1,5 +1,6 @@
 package org.infinitytwo.nyctotile.block;
 
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.data.buffer.NFloatBuffer;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.model.builder.CubeModelBuilder;
@@ -12,7 +13,7 @@ public class DirtBlockType extends BlockType {
     }
 
     @Override
-    public void buildModel(GridMap map, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer b) {
-        CubeModelBuilder.standardVerticesList(map,x,y,z,atlas.getUVCoords(textureIndex),b);
+    public void buildModel(GridMap map, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer b, RGBA light) {
+        CubeModelBuilder.standardVerticesList(map,x,y,z,atlas.getUVCoords(textureIndex), light, b);
     }
 }

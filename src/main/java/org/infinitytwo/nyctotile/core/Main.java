@@ -32,7 +32,9 @@ import org.infinitytwo.nyctotile.core.ui.position.Pivot;
 import org.infinitytwo.nyctotile.core.world.GMap;
 import org.infinitytwo.nyctotile.core.world.GridMap;
 import org.infinitytwo.nyctotile.core.world.dimension.Overworld;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
+import org.joml.Vector3i;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,7 +111,7 @@ public class Main {
         GLFWErrorCallback.createPrint(System.err).set();
         CrashHandler.init();
         
-        window = new Window(1024, 512, NAME+": Test Run");
+        window = new Window(1024, 512, NAME + ": Test Run");
         logger.info("Early Setup");
         window.initOpenGL();
         window.setBackgroundColor(RGBA.fromRGBA(11, 27, 69, 0));
@@ -183,7 +185,8 @@ public class Main {
                         // LERP calculation: current + (target - current) * factor
                         float newX = currentPos.x + (serverPos.x - currentPos.x) * LERP_FACTOR;
                         float newY = 0;
-                        if (currentPos.y < serverPos.y + 1.5 && player.isGrounded()) newY = currentPos.y + (serverPos.y - currentPos.y) * LERP_FACTOR;
+                        if (currentPos.y < serverPos.y + 1.5 && player.isGrounded())
+                            newY = currentPos.y + (serverPos.y - currentPos.y) * LERP_FACTOR;
                         else newY = currentPos.y;
                         float newZ = currentPos.z + (serverPos.z - currentPos.z) * LERP_FACTOR;
                         
@@ -213,7 +216,7 @@ public class Main {
                     }
                 }
             }
-        },"Dev","");
+        }, "Dev", "");
         
         // SCREENS
         mainScene = new Scene(renderer, window);
@@ -248,7 +251,6 @@ public class Main {
         world.setMap(map);
         world.getLocalPlayer().setInputHandler(input);
         world.getLocalPlayer().getEventBus().register(new Object() {
-            // We can reuse lastSentVelocity to hold the last sent position for throttling.
             private final Vector3f lastSentPosition = new Vector3f();
             private static final float EPSILON = 0.01f; // Tolerance for movement distance
             
@@ -282,7 +284,7 @@ public class Main {
                     server.start();
                 }
                 
-                glfwSetInputMode(window.getWindow(),GLFW_CURSOR,GLFW_CURSOR_DISABLED);
+                glfwSetInputMode(window.getWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 world.connectToServer();
                 started = true;
                 SceneManager.popScreen();
@@ -311,27 +313,27 @@ public class Main {
         );
         
         // Set position and size of the ScrollableMenu UI
-        menu.setPosition(new Anchor(0.5f,0.5f),new Pivot(0.5f,0.5f));
+        menu.setPosition(new Anchor(0.5f, 0.5f), new Pivot(0.5f, 0.5f));
         menu.setSize(1024, 512);
-        menu.setBackgroundColor(0,0,0,0.5f);
+        menu.setBackgroundColor(0, 0, 0, 0.5f);
         
-        menu.getScrollButton().setBackgroundColor(1,1,1,1);
+        menu.getScrollButton().setBackgroundColor(1, 1, 1, 1);
         menu.getScrollButton().setWidth(50);
         
         // Add some UI elements to the scrollable content area
         for (int j = 0; j < 20; j++) {
-            Label label = new Label(mainScene,fontPath);
-            label.setSize(250,64);
-            label.setBackgroundColor(0.25f,0.25f,0.25f,1);
-            label.setText("Text: "+j);
-            label.setOffset(0,64 * j);
+            Label label = new Label(mainScene, fontPath);
+            label.setSize(250, 64);
+            label.setBackgroundColor(0.25f, 0.25f, 0.25f, 1);
+            label.setText("Text: " + j);
+            label.setOffset(0, 64 * j);
             
             menu.addUI(label);
         }
         
         // Register menu itself to the scene
-        mainScene.register(menu);
-//        mainScene.register(play);
+//        mainScene.register(menu);
+        mainScene.register(play);
         
         SceneManager.register("main", mainScene);
         SceneManager.setScreen("main");
@@ -358,8 +360,10 @@ public class Main {
         if (!started) {
             Display.prepare2d();
             SceneManager.draw();
-        } else
-            fontRenderer.renderText(Display.get3DProjectionMatrix(camera,window),"Velocity: "+VectorMath.toString(VectorMath.toInt(world.getLocalPlayer().getVelocity())),0,32,0,0,0);
+        } else {
+            fontRenderer.renderText(Display.get3DProjectionMatrix(camera, window), "Velocity: " + VectorMath.toString(VectorMath.toInt(world.getLocalPlayer().getVelocity())), 0, 32, 0, 0, 0);
+//            System.out.println(world.getLocalPlayer().getPosition());
+        }
         input.update();
         handleInput();
         
@@ -387,6 +391,12 @@ public class Main {
         if (e.getAction() == GLFW_RELEASE) return;
         if (e.getKey() == GLFW_KEY_ESCAPE) {
             Game.pauseGame(window);
+        } else if (e.key == GLFW_KEY_Y) {
+            Vector3f position = world.getLocalPlayer().getPosition();
+            Vector2i pos = GMap.worldToChunk((int) position.x, (int) position.z);
+            Vector3i localChunkPos = GMap.convertToLocalChunk(VectorMath.toInt(position));
+            
+            world.getMap().getChunk(pos).setLight(localChunkPos.x,localChunkPos.y,localChunkPos.z, 255, 255, 255, 15);
         }
     }
 }

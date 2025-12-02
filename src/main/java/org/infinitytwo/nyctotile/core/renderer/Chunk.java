@@ -1,5 +1,6 @@
 package org.infinitytwo.nyctotile.core.renderer;
 
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.manager.ChunkManager;
 import org.infinitytwo.nyctotile.core.Window;
 import org.infinitytwo.nyctotile.core.manager.WorkerThreads;
@@ -35,16 +36,18 @@ import static org.lwjgl.opengl.GL30.*;
  * The winding is: Clockwise (CW)
  */
 public class Chunk extends ChunkData {
+    private static final int FLOATS_PER_VERTEX = 10;
     private int vaoId;
     private int vboId;
     private int vertexCount;
     private int vboCapacityFloats = 0;
-
+    
     private final ShaderProgram shaderProgram;
     private volatile boolean isDirty = false;
     private final TextureAtlas atlas;
     private final BlockRegistry registry;
-
+    
+    @Deprecated
     public Chunk(Vector2i position, ShaderProgram shaderProgram, TextureAtlas atlas, GridMap map, BlockRegistry registry) {
         super(position);
         this.shaderProgram = shaderProgram;
@@ -64,9 +67,11 @@ public class Chunk extends ChunkData {
                         layout (location = 0) in vec3 aPos;
                         layout (location = 1) in vec2 aTexCoord;
                         layout (location = 2) in float aBrightness;
+                        layout (location = 3) in vec4 light;
                         
                         out vec2 TexCoord;
                         out float Brightness;
+                        out vec4 Light;
                         
                         uniform mat4 model;
                         uniform mat4 view;
@@ -75,6 +80,7 @@ public class Chunk extends ChunkData {
                         void main() {
                             TexCoord = aTexCoord;
                             Brightness = aBrightness;
+                            Light = light;
                             gl_Position = projection * view * model * vec4(aPos, 1.0);
                         }
                         """,
@@ -82,6 +88,7 @@ public class Chunk extends ChunkData {
                         #version 330 core
                         in vec2 TexCoord;
                         in float Brightness;
+                        in vec4 Light;
                         
                         uniform sampler2D ourTexture;
                         
@@ -89,7 +96,19 @@ public class Chunk extends ChunkData {
                         
                         void main() {
                             vec4 texColor = texture(ourTexture, TexCoord);
-                            FragColor = vec4(texColor.rgb * Brightness, texColor.a);
+                        
+                            // Step 1: Apply initial shading (e.g., ambient occlusion from Brightness)
+                            vec3 brightenedColor = texColor.rgb * Brightness;
+                        
+                            // Step 2: Apply the light color (R, G, B) as a tint/filter
+                            vec3 tintedColor = brightenedColor * (Light.rgb + 0.4);
+                        
+                            // Step 3: Apply the Light Level Intensity (Light.a)
+                            // This scales the entire color from 0.0 (pitch black) to 1.0 (full brightness).
+                            vec3 finalColor = tintedColor * 1.0;
+                        
+                            // Final Output
+                            FragColor = vec4(finalColor, texColor.a);
                         }
                         """);
         this.atlas = atlas;
@@ -98,18 +117,18 @@ public class Chunk extends ChunkData {
         this.blocks = new int[SIZE_X * SIZE_Y * SIZE_Z];
         setupMeshBuffers();
     }
-
+    
     private static int getIndex(int x, int y, int z) {
         return (x * SIZE_Y * SIZE_Z) + (y * SIZE_Z) + z;
     }
-
+    
     private boolean inBounds(int x, int y, int z) {
         return x >= 0 && x < SIZE_X && y >= 0 && y < SIZE_Y && z >= 0 && z < SIZE_Z;
     }
-
+    
     public void setBlock(int x, int y, int z, int blockId, boolean generator) throws IllegalChunkAccessException {
         if (inBounds(x, y, z)) {
-            blocks[getIndex(x, y, z)]=blockId;
+            blocks[getIndex(x, y, z)] = blockId;
             isDirty = true;
             if (x == 0 || x == SIZE_X - 1 ||
                     z == 0 || z == SIZE_Z - 1) {
@@ -119,62 +138,67 @@ public class Chunk extends ChunkData {
             throw new IllegalChunkAccessException("Block position out of chunk bounds");
         }
     }
-
-    public void setBlock(int x, int y, int z, int blockId) throws IllegalChunkAccessException {
-        setBlock(x, y, z, blockId, false);
-    }
-
+    
     private void notifyNeighboringChunks(int x, int y, int z) {
         Vector2i currentChunkPos = this.getPosition();
-
+        
         if (x == 0) map.rebuildChunk(currentChunkPos.x - 1, currentChunkPos.y);
         if (x == SIZE_X - 1) map.rebuildChunk(currentChunkPos.x + 1, currentChunkPos.y);
         if (z == 0) map.rebuildChunk(currentChunkPos.x, currentChunkPos.y - 1);
         if (z == SIZE_Z - 1) map.rebuildChunk(currentChunkPos.x, currentChunkPos.y + 1);
     }
-
+    
     private synchronized void setupMeshBuffers() {
         vaoId = glGenVertexArrays();
         vboId = glGenBuffers();
     }
-
+    
     public synchronized void buildMeshData() {
         isDirty = false;
         NFloatBuffer buffer = new NFloatBuffer();
         
         ChunkManager.run(() -> {
+            RGBA light = new RGBA();
+            
             for (int x = 0; x < SIZE_X; x++) {
                 for (int y = 0; y < SIZE_Y; y++) {
                     for (int z = 0; z < SIZE_Z; z++) {
                         int id = getBlockId(x, y, z);
                         if (id == 0) continue;
-
+                        
                         BlockType type = registry.get(id);
                         if (type == null) continue;
-
-                        type.buildModel(map, GridMap.convertToWorldPosition(position, x, y, z), atlas, registry, buffer);
+                        
+                        light.set(
+                                (float) getRed(x, y, z) / 255,
+                                (float) getGreen(x, y, z) / 255,
+                                (float) getBlue(x, y, z) / 255,
+                                (float) getLightLevel(x, y, z) / 15
+                        );
+                        
+                        type.buildModel(map, GridMap.convertToWorldPosition(position, x, y, z), atlas, registry, buffer, light);
                     }
                 }
             }
-
+            
             WorkerThreads.dispatch(() -> {
                 uploadMesh(buffer);
                 buffer.close();
             });
         });
     }
-
+    
     private synchronized void uploadMesh(NFloatBuffer nBuffer) {
         int totalFloats = nBuffer.getWritten();
         FloatBuffer buffer = nBuffer.getBuffer();
-
-        vertexCount = totalFloats / 6;
-
+        
+        vertexCount = totalFloats / FLOATS_PER_VERTEX;
+        
         if (totalFloats == 0) return; // Skip if empty
-
+        
         glBindVertexArray(vaoId);
         glBindBuffer(GL_ARRAY_BUFFER, vboId);
-
+        
         // --- OPTIMIZATION: Use glBufferSubData when possible ---
         if (totalFloats > vboCapacityFloats) {
             // Case 1: The new mesh is LARGER than the GPU capacity.
@@ -186,56 +210,58 @@ public class Chunk extends ChunkData {
             // Fast update: Only copy the data, no reallocation.
             GL15.glBufferSubData(GL_ARRAY_BUFFER, 0, buffer);
         }
-
+        
         // The Attribute Pointers only need to be set once, but it's often safer
         // to keep them here or in setupMeshBuffers if your VAO is simple.
         // Since you are calling glBufferData/glBufferSubData, the data itself is updated,
         // and the VAO bindings are valid.
-
-        int stride = 6 * Float.BYTES;
+        
+        int stride = FLOATS_PER_VERTEX * Float.BYTES;
         glVertexAttribPointer(0, 3, GL_FLOAT, false, stride, 0);
         glVertexAttribPointer(1, 2, GL_FLOAT, false, stride, 3 * Float.BYTES);
         glVertexAttribPointer(2, 1, GL_FLOAT, false, stride, 5 * Float.BYTES);
-
+        glVertexAttribPointer(3, 4, GL_FLOAT, false, stride, 6 * Float.BYTES);
+        
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
         glEnableVertexAttribArray(2);
-
+        glEnableVertexAttribArray(3);
+        
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
-
+        
         isDirty = false;
     }
-
+    
     public synchronized void draw(Camera camera, Window window) {
         if (isDirty) rebuild();
         if (vertexCount == 0) return;
-
+        
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
         glFrontFace(GL_CW);
-
+        
         shaderProgram.bind();
-
+        
         Matrix4f model = new Matrix4f().identity();
         Matrix4f view = camera.getViewMatrix();
         Vector2i windowSize = window.getSize();
         Matrix4f projection = new Matrix4f().perspective((float) Math.toRadians(camera.getFov()), (float) windowSize.x / windowSize.y, 0.1f, 1024f);
-
+        
         shaderProgram.setUniformMatrix4fv("model", model);
         shaderProgram.setUniformMatrix4fv("view", view);
         shaderProgram.setUniformMatrix4fv("projection", projection);
-
+        
         GL13.glActiveTexture(GL13.GL_TEXTURE0);
         atlas.getTexture().bind();
         shaderProgram.setUniform1i("ourTexture", 0);
-
+        
         glBindVertexArray(vaoId);
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
         glBindVertexArray(0);
         shaderProgram.unbind();
     }
-
+    
     public synchronized void cleanup() {
         glDisableVertexAttribArray(0);
         glDisableVertexAttribArray(1);
@@ -246,36 +272,87 @@ public class Chunk extends ChunkData {
         glDeleteVertexArrays(vaoId);
         shaderProgram.cleanup();
     }
-
+    
     public int[] getBlockData() {
         return blocks;
     }
-
+    
     public void rebuild() {
         buildMeshData();
     }
+    
+    // Chunk.java
 
+// ... (other methods)
+    
+    /**
+     * Triggers a synchronous rebuild and mesh upload.
+     * Use with caution as this runs on the main (render) thread.
+     */
+    public void rebuildSynchronous() {
+        isDirty = false; // Reset the flag immediately
+        NFloatBuffer buffer = new NFloatBuffer();
+        
+        // Perform the mesh generation (usually fast enough for one chunk)
+        RGBA light = new RGBA();
+        for (int x = 0; x < SIZE_X; x++) {
+            for (int y = 0; y < SIZE_Y; y++) {
+                for (int z = 0; z < SIZE_Z; z++) {
+                    int id = getBlockId(x, y, z);
+                    if (id == 0) continue;
+                    
+                    BlockType type = registry.get(id);
+                    if (type == null) continue;
+                    
+                    // Get light data from ChunkData fields
+                    light.set(
+                            (float) getRed(x, y, z) / 255,
+                            (float) getGreen(x, y, z) / 255,
+                            (float) getBlue(x, y, z) / 255,
+                            (float) getLightLevel(x, y, z) / 15
+                    );
+                    
+                    type.buildModel(map, GridMap.convertToWorldPosition(position, x, y, z), atlas, registry, buffer, light);
+                }
+            }
+        }
+        
+        // Upload the mesh to the GPU immediately (must be on the main thread)
+        uploadMesh(buffer);
+        buffer.close();
+    }
+    
+    // ... (In your main `setLight` method overrides)
+    @Override
+    public void setLight(int x, int y, int z, int r, int g, int b, int level) {
+        super.setLight(x, y, z, r, g, b, level);
+        
+        // 💡 CRITICAL: Force the synchronous rebuild immediately after changing the light data.
+        rebuildSynchronous();
+        // This bypasses the lag inherent in the asynchronous buildMeshData()
+    }
+    
     public void dirty() {
         isDirty = true;
     }
-
+    
     public void setBlock(Vector3i pos, int id, boolean generator) throws IllegalChunkAccessException {
         setBlock(pos.x, pos.y, pos.z, id, generator);
     }
-
+    
     public void setBlock(Vector3i pos, int id) throws IllegalChunkAccessException {
         setBlock(pos, id, false);
     }
-
+    
     public boolean isDirty() {
         return isDirty;
     }
-
+    
     public static Chunk of(ChunkData data, GridMap map, ShaderProgram program, TextureAtlas atlas, BlockRegistry registry) throws IllegalChunkAccessException {
         Chunk chunk = new Chunk(data.getPosition(), program, atlas, map, registry);
         int[] sourceBlocks = data.getBlockIds();
         System.arraycopy(sourceBlocks, 0, chunk.blocks, 0, chunk.blocks.length);
-
+        
         chunk.dirty();
         return chunk;
     }
@@ -291,5 +368,34 @@ public class Chunk extends ChunkData {
     
     public int getBlockId(Vector3i pos) {
         return getBlockId(pos.x, pos.y, pos.z);
+    }
+    
+    @Override
+    public void setBlock(int x, int y, int z, int blockId) throws IllegalChunkAccessException {
+        setBlock(x, y, z, blockId, false);
+    }
+    
+    @Override
+    public void setLightLevel(int x, int y, int z, int lightLevel) {
+        super.setLightLevel(x, y, z, lightLevel);
+        rebuild();
+    }
+    
+    @Override
+    public void setRed(int x, int y, int z, int red) {
+        super.setRed(x, y, z, red);
+        rebuildSynchronous();
+    }
+    
+    @Override
+    public void setGreen(int x, int y, int z, int green) {
+        super.setGreen(x, y, z, green);
+        rebuild();
+    }
+    
+    @Override
+    public void setBlue(int x, int y, int z, int blue) {
+        super.setBlue(x, y, z, blue);
+        rebuild();
     }
 }

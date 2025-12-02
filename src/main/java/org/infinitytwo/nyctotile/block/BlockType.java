@@ -1,5 +1,6 @@
 package org.infinitytwo.nyctotile.block;
 
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.data.world.AABB;
 import org.infinitytwo.nyctotile.core.data.buffer.NFloatBuffer;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
@@ -50,13 +51,13 @@ public abstract class BlockType implements Registerable {
     public static BlockType standard(String material, String name) {
         return new BlockType(material, false, name, 0) {
             @Override
-            public void buildModel(GridMap gridMap, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer) {
+            public void buildModel(GridMap gridMap, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer, RGBA light) {
             }
         };
     }
 
-    public void buildModel(GridMap map, Vector3i pos, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer) {
-        buildModel(map, pos.x, pos.y, pos.z, atlas, registry, buffer);
+    public void buildModel(GridMap map, Vector3i pos, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer, RGBA light) {
+        buildModel(map, pos.x, pos.y, pos.z, atlas, registry, buffer, light);
     }
 
     public boolean isCollidable() {
@@ -67,7 +68,7 @@ public abstract class BlockType implements Registerable {
         return hitboxes;
     }
 
-    public abstract void buildModel(GridMap gridMap, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer);
+    public abstract void buildModel(GridMap gridMap, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer, RGBA light);
 
     public float getFriction() {
         return friction;

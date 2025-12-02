@@ -22,33 +22,34 @@ public class Player extends Entity {
     protected Camera camera;
     private InputManager input;
     private final EventBus bus = new EventBus();
+    private static final float EPSILON = 0.01f;
     
     public Player(PlayerData data, Dimension map, @Nullable Camera camera, Window window) {
         super("player", map, window, new Inventory(36));
         this.data = data;
         this.camera = camera;
-
-        hitbox = new AABB(-0.3f,0,-0.3f,0.3f,1.8f,0.3f);
+        
+        hitbox = new AABB(-0.3f, 0, -0.3f, 0.3f, 1.8f, 0.3f);
     }
     
     public Player(PlayerData data, Dimension map, Window window) {
         super("player", map, window, new Inventory(36));
         this.data = data;
         
-        hitbox = new AABB(-0.3f,0,-0.3f,0.3f,1.8f,0.3f);
+        hitbox = new AABB(-0.3f, 0, -0.3f, 0.3f, 1.8f, 0.3f);
     }
     
     public void setInputHandler(InputManager input) {
         this.input = input;
     }
-
+    
     public Player(Dimension map, Window window, @Nullable Camera camera) {
         super("player", map, window, new Inventory(36));
         this.camera = camera;
-
+        
         this.hitbox = new AABB(-0.3f, 0, -0.3f, 0.3f, 1.8f, 0.3f);
     }
-
+    
     private Player() {
         super("player", null, null, new Inventory(36), new AABB(-0.3f, 0, -0.3f, 0.3f, 1.8f, 0.3f));
     }
@@ -69,7 +70,7 @@ public class Player extends Entity {
         Vector3f right = new Vector3f(forward).cross(new Vector3f(0, 1, 0)).normalize();
         
         // 💡 CRITICAL FIX: Create the pure input vector (Velocity Input)
-        Vector3f velocityInput = new Vector3f(0,0,0);
+        Vector3f velocityInput = new Vector3f(0, 0, 0);
         
         if (input.isKeyPressed(GLFW.GLFW_KEY_W)) velocityInput.add(forward);
         if (input.isKeyPressed(GLFW.GLFW_KEY_S)) velocityInput.sub(forward);
@@ -100,45 +101,75 @@ public class Player extends Entity {
         // 4. Run base Entity physics (gravity, collision, friction/damping, and final move)
         super.update(deltaTime, map);
         
-        // --- 5. Synchronize with Server (Send PURE INPUT VECTOR) ---
-        // Send the pure, clean input vector to the server. The server will use this
-        // to calculate its own authoritative position using its physics loop.
+        if (Math.abs(position.x - prevPosition.x) > EPSILON ||
+                Math.abs(position.y - prevPosition.y) > EPSILON ||
+                Math.abs(position.z - prevPosition.z) > EPSILON)
+        {
+//          setPrevPosition();
+        }
         bus.post(new VelocityChangedEvent(velocityInput.x, velocityInput.y, velocityInput.z));
     }
     
     @Override
     protected synchronized void moveAxis(float dx, float dy, float dz, GMap map) {
         super.moveAxis(dx, dy, dz, map);
-        if (camera != null) camera.setPosition(position.x,position.y + 1.8f,position.z);
     }
     
     public void adjust() {
         for (int y = 0; y < 128; y++) {
             if (dimension.getWorld().getBlock((int) position.x, y, (int) position.z) == null) {
-                position.y = y+1;
+                position.y = y + 1;
                 break;
             }
         }
     }
     
-    // Player.java - New method for smooth camera follow (or put this in your game loop)
-    public void updateCamera(float alpha) {
+    // Assuming this code is in your Player class
+    
+    public void updateCamera(float delta) {
         if (camera == null) return;
         
-        // Use a smoothed position instead of the instant position.
-        // The 'position' field is the authoritative position (either local or server-corrected).
+        // --- Camera Smoothing Constants ---
+        // The LERP factor controls the speed of the follow.
+        final float SMOOTH_FACTOR = 0.1f;
         
-        // To smooth movement, you'd typically use the previous position (prevPosition)
-        // and the current position (position) and interpolate by a factor 'alpha' (0.0 to 1.0).
-        // Lerp: A = start position, B = end position, alpha = interpolation factor.
-        float targetX = lerp(getPrevPosition().x, position.x, alpha);
-        float targetY = lerp(getPrevPosition().y, position.y, alpha);
-        float targetZ = lerp(getPrevPosition().z, position.z, alpha);
+        // A small squared distance threshold (e.g., 0.0001f is 0.01 units)
+        // If the player's position is closer than this to the camera's position,
+        // we stop the camera movement.
+        final float CAMERA_DEAD_ZONE_SQ = 0.0001f; // (0.01 * 0.01)
         
-        // Camera is always at player's eye level (position.y + 1.8f)
-        camera.setPosition(targetX, targetY + hitbox.maxY, targetZ);
+        // Calculate the target position (Player's current position at eye level)
+        float playerEyeY = position.y + hitbox.maxY;
+        
+        // --- 1. Determine Target Vector ---
+        Vector3f targetPos = new Vector3f(position.x, playerEyeY, position.z);
+        Vector3f currentCamPos = camera.getPosition();
+        
+        // --- 2. Check Dead Zone ---
+        // Only check the horizontal distance for the dead zone, as vertical jitter
+        // is the main issue when standing.
+        float distSqX = (targetPos.x - currentCamPos.x) * (targetPos.x - currentCamPos.x);
+        float distSqZ = (targetPos.z - currentCamPos.z) * (targetPos.z - currentCamPos.z);
+        
+        // Check if the camera is already close enough to the player horizontally
+        if (distSqX + distSqZ < CAMERA_DEAD_ZONE_SQ) {
+            // If within the dead zone, keep the current horizontal position.
+            // The camera should still smoothly follow the player's vertical movement (Y-axis)
+            // because vertical jitter is handled by the low SMOOTH_FACTOR (LERP).
+            
+            float newCamY = lerp(currentCamPos.y, playerEyeY, SMOOTH_FACTOR);
+            camera.setPosition(currentCamPos.x, newCamY, currentCamPos.z);
+            return; // Skip LERP on X and Z
+        }
+        
+        // --- 3. Apply Smooth LERP (If outside the dead zone) ---
+        float newCamX = lerp(currentCamPos.x, targetPos.x, SMOOTH_FACTOR);
+        float newCamY = lerp(currentCamPos.y, playerEyeY, SMOOTH_FACTOR);
+        float newCamZ = lerp(currentCamPos.z, targetPos.z, SMOOTH_FACTOR);
+        
+        camera.setPosition(newCamX, newCamY, newCamZ);
     }
-
+    
     @Override
     public Entity newInstance() {
         return new Player();
@@ -149,7 +180,7 @@ public class Player extends Entity {
     }
     
     public void movePosition(float x, float y, float z) {
-        position.add(x,y,z);
+        position.add(x, y, z);
     }
     
     public PlayerData getData() {

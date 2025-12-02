@@ -53,7 +53,7 @@ public abstract class GMap {
         return localChunkPos.add((chunk.x * SIZE_X),0,(chunk.y * SIZE_Z));
     }
     
-    protected static Vector3i convertToLocalChunk(Vector3i blockPos) {
+    public static Vector3i convertToLocalChunk(Vector3i blockPos) {
         return convertToLocalChunk(blockPos.x, blockPos.y, blockPos.z);
     }
     

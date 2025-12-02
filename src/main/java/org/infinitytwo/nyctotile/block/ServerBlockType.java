@@ -1,5 +1,6 @@
 package org.infinitytwo.nyctotile.block;
 
+import org.infinitytwo.nyctotile.core.data.RGBA;
 import org.infinitytwo.nyctotile.core.data.buffer.NFloatBuffer;
 import org.infinitytwo.nyctotile.core.model.TextureAtlas;
 import org.infinitytwo.nyctotile.core.registry.BlockRegistry;
@@ -11,7 +12,7 @@ public class ServerBlockType extends BlockType {
     }
 
     @Override
-    public void buildModel(GridMap map, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer) {
+    public void buildModel(GridMap map, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer, RGBA light) {
 
     }
 }

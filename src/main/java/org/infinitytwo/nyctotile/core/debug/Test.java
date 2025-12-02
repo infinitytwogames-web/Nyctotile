@@ -378,8 +378,8 @@ public class Test {
             public int data = 5;
             
             @Override
-            public void buildModel(GridMap gridMap, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer) {
-                CubeModelBuilder.standardVerticesList(map, x, y, z, atlas.getUVCoords(2), buffer);
+            public void buildModel(GridMap gridMap, int x, int y, int z, TextureAtlas atlas, BlockRegistry registry, NFloatBuffer buffer, RGBA light) {
+                CubeModelBuilder.standardVerticesList(map, x, y, z, atlas.getUVCoords(2), light, buffer);
             }
         };
         

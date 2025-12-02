@@ -35,7 +35,7 @@ public abstract class Entity implements Registerable {
     private final Vector3f rotation = new Vector3f();
     private static float airResistance = 7;
     
-    private static final float COLLISION_EPSILON = 0.005f;
+    private static final float COLLISION_EPSILON = 0.0001f;
 
     public static synchronized float getAirResistance() {
         return airResistance;
@@ -68,7 +68,6 @@ public abstract class Entity implements Registerable {
     
     public void update(float deltaTime, GMap map) {
         synchronized (this) {
-        setPrevPosition();
         
         // Reset grounded state
         isGrounded = false;

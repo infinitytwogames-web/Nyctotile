@@ -205,7 +205,7 @@ public class ProcedureGridMap extends GridMap {
                 }
             }
             if (nextData != null) {
-                addChunk(nextData.createChunk(program, atlas, registry));
+                addChunk(nextData.createChunk(atlas, registry));
             }
             
         }

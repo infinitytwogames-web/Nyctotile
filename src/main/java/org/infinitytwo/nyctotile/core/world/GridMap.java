@@ -241,7 +241,7 @@ public class GridMap extends GMap {
     }
 
     public void addChunk(ChunkData data, ShaderProgram program, TextureAtlas atlas) {
-        chunks.put(new ChunkPos(data.getPosition().x, data.getPosition().y),data.createChunk(program,atlas,registry));
+        chunks.put(new ChunkPos(data.getPosition().x, data.getPosition().y),data.createChunk(atlas,registry));
     }
     
     @Override
